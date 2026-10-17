@@ -1,0 +1,15 @@
+# Backend
+backend/target/
+*.class
+backend/src/main/resources/application-local.properties
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store

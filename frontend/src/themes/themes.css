@@ -1,0 +1,10 @@
+/* Theme colours as CSS variables. Person 3 owns this file and the ThemeProvider
+   that sets data-theme="fantasy" | "mystery" | "romance" on the root element. */
+:root {
+  --color-bg: #ffffff;
+  --color-text: #1f2937;
+  --color-accent: #2f4f7f;
+}
+[data-theme="fantasy"] { --color-bg: #1b1030; --color-text: #f3e8ff; --color-accent: #a855f7; }
+[data-theme="mystery"] { --color-bg: #111827; --color-text: #e5e7eb; --color-accent: #94a3b8; }
+[data-theme="romance"] { --color-bg: #fff1f2; --color-text: #4c0519; --color-accent: #e11d48; }

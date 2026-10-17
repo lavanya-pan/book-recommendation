@@ -1,0 +1,4 @@
+# Create the database first:  CREATE DATABASE book_recommendation;
+spring.datasource.url=jdbc:mysql://localhost:3306/book_recommendation?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=your_password
