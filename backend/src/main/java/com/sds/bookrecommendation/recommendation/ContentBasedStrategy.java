@@ -28,6 +28,9 @@ public class ContentBasedStrategy implements RecommendationStrategy {
     /** A rating at or above this value means the user liked the book. */
     static final int LIKED_SCORE = 4;
 
+    /** Matches less similar than this are dropped, because they only share a stray word. */
+    static final double MIN_SIMILARITY = 0.05;
+
     private final RatingRepository ratingRepository;
     private final BookRepository bookRepository;
 
@@ -128,6 +131,9 @@ public class ContentBasedStrategy implements RecommendationStrategy {
 
         List<RecommendedBook> result = new ArrayList<>();
         for (TfIdfIndex.Match match : matches) {
+            if (match.similarity() < MIN_SIMILARITY) {
+                continue;
+            }
             Book book = booksById.get(match.bookId());
             if (book != null) {
                 double similarity = Math.round(match.similarity() * 1000) / 1000.0;

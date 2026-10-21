@@ -76,7 +76,17 @@ class ContentBasedStrategyTest {
         assertFalse(result.isEmpty());
         assertEquals(2L, result.get(0).id());
         assertTrue(result.stream().noneMatch(r -> r.id() == 1L));
-        assertEquals(5L, result.get(1).id());    }
+        assertEquals(5L, result.get(1).id());
+    }
+
+    @Test
+    void ignoresBooksThatOnlyShareAStrayWord() {
+        when(ratingRepository.findByUserId(1L)).thenReturn(List.of(new Rating(user, books.get(0), 5)));
+
+        List<RecommendedBook> result = strategy.recommend(1L, 5);
+
+        assertTrue(result.stream().noneMatch(r -> r.id() == 3L || r.id() == 4L));
+    }
 
     @Test
     void reasonMentionsTheLikedBook() {
