@@ -18,8 +18,9 @@ import java.util.stream.Collectors;
 
 /**
  * Item-based collaborative filtering: "readers who liked this also liked...".
- * Two books are similar when the same readers rated them (cosine similarity of
- * their rating vectors). Only ratings are used, never the book text.
+ * Only liked ratings (4 stars or more) count. Two books are similar when the same
+ * readers liked both (cosine similarity of their rating vectors). Only ratings are
+ * used, never the book text.
  */
 @Component
 public class CollaborativeStrategy implements RecommendationStrategy {
@@ -27,7 +28,7 @@ public class CollaborativeStrategy implements RecommendationStrategy {
     /** A rating at or above this value means the user liked the book. */
     static final int LIKED_SCORE = 4;
 
-    /** A book pair needs at least this many readers who rated both. */
+    /** A book pair needs at least this many readers who liked both. */
     static final int MIN_CO_RATERS = 2;
 
     private final RatingRepository ratingRepository;
@@ -56,27 +57,26 @@ public class CollaborativeStrategy implements RecommendationStrategy {
             return List.of();
         }
 
-        // Step 1: put every rating into two lookup tables (by user and by book).
+        // Step 1: put every LIKED rating into two lookup tables (by user and by book).
+        // Books the target user rated at all (liked or not) are remembered so they
+        // are never recommended again.
         Map<Long, Map<Long, Integer>> byUser = new HashMap<>();
         Map<Long, Map<Long, Integer>> byBook = new HashMap<>();
+        Set<Long> alreadyRated = new HashSet<>();
         for (Rating rating : ratingRepository.findAll()) {
             long user = rating.getUser().getId();
             long book = rating.getBook().getId();
-            byUser.computeIfAbsent(user, k -> new HashMap<>()).put(book, rating.getScore());
-            byBook.computeIfAbsent(book, k -> new HashMap<>()).put(user, rating.getScore());
+            if (user == userId) {
+                alreadyRated.add(book);
+            }
+            if (rating.getScore() >= LIKED_SCORE) {
+                byUser.computeIfAbsent(user, k -> new HashMap<>()).put(book, rating.getScore());
+                byBook.computeIfAbsent(book, k -> new HashMap<>()).put(user, rating.getScore());
+            }
         }
 
-        Map<Long, Integer> mine = byUser.get(userId);
-        if (mine == null) {
-            return List.of();
-        }
-        Map<Long, Integer> liked = new HashMap<>();
-        mine.forEach((book, score) -> {
-            if (score >= LIKED_SCORE) {
-                liked.put(book, score);
-            }
-        });
-        if (liked.isEmpty()) {
+        Map<Long, Integer> liked = byUser.get(userId);
+        if (liked == null) {
             return List.of();
         }
 
@@ -90,7 +90,7 @@ public class CollaborativeStrategy implements RecommendationStrategy {
             norms.put(book, Math.sqrt(sum));
         });
 
-        // Step 3: for each liked book, score the books other readers rated alongside it.
+        // Step 3: for each liked book, score the books other readers also liked.
         Map<Long, Double> scores = new HashMap<>();
         Map<Long, Long> bestSeed = new HashMap<>();
         Map<Long, Double> bestContribution = new HashMap<>();
@@ -104,7 +104,7 @@ public class CollaborativeStrategy implements RecommendationStrategy {
                 int seedScore = rater.getValue();
                 for (Map.Entry<Long, Integer> other : byUser.get(rater.getKey()).entrySet()) {
                     long otherId = other.getKey();
-                    if (otherId == seedId || mine.containsKey(otherId)) {
+                    if (otherId == seedId || alreadyRated.contains(otherId)) {
                         continue;
                     }
                     dots.merge(otherId, (double) seedScore * other.getValue(), Double::sum);

@@ -27,6 +27,7 @@ class CollaborativeStrategyTest {
     private Book bookB;
     private Book bookC;
     private Book bookD;
+    private Book bookE;
     private User u1;
     private User u2;
     private User u3;
@@ -43,7 +44,8 @@ class CollaborativeStrategyTest {
         bookB = book(2L, "Book B");
         bookC = book(3L, "Book C");
         bookD = book(4L, "Book D");
-        List<Book> books = List.of(bookA, bookB, bookC, bookD);
+        bookE = book(5L, "Book E");
+        List<Book> books = List.of(bookA, bookB, bookC, bookD, bookE);
 
         u1 = user(1L);
         u2 = user(2L);
@@ -72,12 +74,17 @@ class CollaborativeStrategyTest {
         return user;
     }
 
-    /** User 1 gives Book A the score given; everyone else rates the same way in every test. */
+    /**
+     * User 1 gives Book A the score given. The other readers rate the same way in every test:
+     * users 2 and 3 liked A, B and C but disliked E; user 4 liked A and D; user 5 liked C.
+     */
     private void ratings(int scoreOfUser1ForA) {
         when(ratingRepository.findAll()).thenReturn(List.of(
                 new Rating(u1, bookA, scoreOfUser1ForA),
-                new Rating(u2, bookA, 5), new Rating(u2, bookB, 5), new Rating(u2, bookC, 1),
-                new Rating(u3, bookA, 4), new Rating(u3, bookB, 4), new Rating(u3, bookC, 2),
+                new Rating(u2, bookA, 5), new Rating(u2, bookB, 5), new Rating(u2, bookC, 4),
+                new Rating(u2, bookE, 1),
+                new Rating(u3, bookA, 4), new Rating(u3, bookB, 4), new Rating(u3, bookC, 4),
+                new Rating(u3, bookE, 2),
                 new Rating(u4, bookA, 5), new Rating(u4, bookD, 5),
                 new Rating(u5, bookC, 5)));
     }
@@ -95,11 +102,20 @@ class CollaborativeStrategyTest {
 
         assertEquals(List.of(2L, 3L), result.stream().map(RecommendedBook::id).toList());
         assertEquals(3.356, result.get(0).score(), 0.01);
-        assertEquals(1.244, result.get(1).score(), 0.01);
+        assertEquals(2.499, result.get(1).score(), 0.01);
     }
 
     @Test
-    void skipsBooksRatedByOnlyOneSharedReader() {
+    void ignoresBooksTheNeighboursDidNotLike() {
+        ratings(5);
+
+        List<RecommendedBook> result = strategy.recommend(1L, 10);
+
+        assertTrue(result.stream().noneMatch(r -> r.id() == 5L));
+    }
+
+    @Test
+    void skipsBooksLikedByOnlyOneSharedReader() {
         ratings(5);
 
         List<RecommendedBook> result = strategy.recommend(1L, 10);
