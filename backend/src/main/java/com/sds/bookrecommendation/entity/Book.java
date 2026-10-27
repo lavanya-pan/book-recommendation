@@ -78,6 +78,46 @@ public class Book {
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
 
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public Integer getPageCount() {
+        return pageCount;
+    }
+
+    public void setPageCount(Integer pageCount) {
+        this.pageCount = pageCount;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
+    }
+
+    public int getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(int ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
     public String getGenre() { return genre; }
     public void setGenre(String genre) { this.genre = genre; }
 
