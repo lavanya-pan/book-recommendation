@@ -116,7 +116,8 @@ public class ContentBasedStrategy implements RecommendationStrategy {
     /** The text used to compare books. Genre is repeated so it counts for more. */
     private static String describe(Book book) {
         return String.join(" ", orEmpty(book.getTitle()), orEmpty(book.getAuthor()),
-                orEmpty(book.getGenre()), orEmpty(book.getGenre()), orEmpty(book.getDescription()));
+                orEmpty(book.getGenre()), orEmpty(book.getGenre()), orEmpty(book.getTags()),
+                orEmpty(book.getDescription()));
     }
 
     private static String orEmpty(String text) {
