@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import RecommendationCard from "../components/RecommendationCard.jsx";
+import PopularRows from "../components/PopularRows.jsx";
 import {
   getRecommendationTypes,
   getRecommendations,
@@ -111,6 +112,8 @@ export default function ForYou() {
           </div>
         )}
       </section>
+
+      <PopularRows />
     </main>
   );
 }

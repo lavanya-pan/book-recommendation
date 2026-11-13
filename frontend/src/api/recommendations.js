@@ -19,3 +19,15 @@ export async function getSimilarBooks(bookId, limit = 6) {
   const res = await api.get(`/books/${bookId}/similar`, { params: { limit } });
   return res.data;
 }
+
+// Best average rating overall (books with at least 3 ratings). No login needed.
+export async function getTopRated(limit = 10) {
+  const res = await api.get("/books/top-rated", { params: { limit } });
+  return res.data;
+}
+
+// Most ratings in the last 30 days. No login needed.
+export async function getTrending(limit = 10) {
+  const res = await api.get("/books/trending", { params: { limit } });
+  return res.data;
+}
