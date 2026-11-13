@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
-
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 /**
  * One place that turns exceptions into the standard JSON error format.
  * Add a new handler method here when you add a new custom exception.
@@ -46,6 +46,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleOther(Exception ex) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
+    }
+
+    /** A value of the wrong type, such as limit=abc or a non-numeric id, becomes 400. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        return build(HttpStatus.BAD_REQUEST, "Invalid value for '" + ex.getName() + "'");
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
