@@ -34,6 +34,26 @@ public class Book {
 
     private Integer publishedYear;
 
+    /** URL of the book cover image. */
+    @Column(name = "cover_url", length = 500)
+    private String coverUrl;
+
+    /** Number of pages. Optional, because the dataset has no page counts. */
+    @Column(name = "page_count")
+    private Integer pageCount;
+
+    /** Comma-separated tags, used by the content-based recommender. */
+    @Column(name = "tags", length = 1000)
+    private String tags;
+
+    /** Average of all user ratings. Updated by the rating module. */
+    @Column(name = "avg_rating", nullable = false)
+    private double avgRating = 0.0;
+
+    /** How many ratings the book has received. Updated by the rating module. */
+    @Column(name = "rating_count", nullable = false)
+    private int ratingCount = 0;
+
     /** All ratings given to this book (inverse side of Rating.book). */
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings = new ArrayList<>();
