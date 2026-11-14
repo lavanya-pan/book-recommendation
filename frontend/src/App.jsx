@@ -3,6 +3,7 @@ import Home from "./pages/Home.jsx";
 import ForYou from "./pages/ForYou.jsx";
 import ThemeSwitcher from "./components/ThemeSwitcher.jsx";
 import PersonalityQuiz from "./pages/PersonalityQuiz.jsx";
+import MoodQuiz from "./pages/MoodQuiz.jsx";
 
 // Add your page routes here, one small commit at a time to avoid merge conflicts.
 // Examples: /browse, /books/:id, /login, /quiz, /for-you, /profile
@@ -17,6 +18,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/for-you" element={<ForYou />} />
                 <Route path="/quiz" element={<PersonalityQuiz />} />
+                <Route path="/mood-quiz" element={<MoodQuiz />} />
             </Routes>
         </>
     );
