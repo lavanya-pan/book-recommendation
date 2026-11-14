@@ -1,6 +1,7 @@
 package com.sds.bookrecommendation.repository;
 
 import com.sds.bookrecommendation.entity.Book;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> search(@Param("q") String query);
 
     List<Book> findByGenreIgnoreCase(String genre);
+
+    /**
+     * Books with at least minCount ratings, best stored average first (ties: more ratings first).
+     * Used as the starting ranking before the site has its own ratings.
+     */
+    List<Book> findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(int minCount, Pageable pageable);
 }

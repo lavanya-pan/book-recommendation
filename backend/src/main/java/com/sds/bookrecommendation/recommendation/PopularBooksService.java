@@ -4,15 +4,18 @@ import com.sds.bookrecommendation.entity.Book;
 import com.sds.bookrecommendation.entity.Rating;
 import com.sds.bookrecommendation.repository.BookRepository;
 import com.sds.bookrecommendation.repository.RatingRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +40,9 @@ public class PopularBooksService {
     }
 
     /**
-     * Highest average rating first, among books with at least 3 ratings.
+     * Highest average rating first, among books with at least 3 ratings on the site.
+     * If the site has too few ratings to fill the list, the remaining places are filled
+     * from the rating stored on each book (the dataset's average and rating count).
      *
      * @param limit number of books wanted; null means 10, values above 50 become 50
      * @throws IllegalArgumentException if the limit is below 1
@@ -62,6 +67,27 @@ public class PopularBooksService {
             reasons.put(id, String.format(Locale.ROOT, "Rated %.1f out of 5 by %d readers", average, ratings));
             if (ids.size() == count) {
                 break;
+            }
+        }
+
+        // Fill the remaining places from the rating stored on each book (the dataset's rating).
+        if (ids.size() < count) {
+            Set<Long> included = new HashSet<>(ids);
+            List<Book> stored = bookRepository
+                    .findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
+                            TopRatedStrategy.MIN_DATASET_RATINGS, PageRequest.of(0, count + ids.size()));
+            for (Book book : stored) {
+                if (ids.size() == count) {
+                    break;
+                }
+                if (!included.add(book.getId())) {
+                    continue;
+                }
+                ids.add(book.getId());
+                scores.put(book.getId(), Math.round(book.getAvgRating() * 100) / 100.0);
+                reasons.put(book.getId(), String.format(Locale.ROOT,
+                        "Rated %.1f out of 5 by %,d Goodreads readers",
+                        book.getAvgRating(), book.getRatingCount()));
             }
         }
         return build(ids, scores, reasons);
