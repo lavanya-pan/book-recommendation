@@ -125,7 +125,7 @@ export default function PersonalityQuiz() {
 
                     <div className="mt-6 flex flex-wrap gap-3">
                         <Link
-                            to="/for-you"
+                            to={`/for-you?genres=${result.genres.join(",")}`}
                             className="rounded px-4 py-2 font-medium"
                             style={{ background: "var(--color-accent)", color: "var(--color-accent-text)" }}
                         >

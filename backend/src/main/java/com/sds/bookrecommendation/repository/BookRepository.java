@@ -23,4 +23,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * Used as the starting ranking before the site has its own ratings.
      */
     List<Book> findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(int minCount, Pageable pageable);
+
+    /** Same ranking, limited to one genre (case-insensitive). */
+    List<Book> findByGenreIgnoreCaseAndRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
+            String genre, int minCount, Pageable pageable);
 }
