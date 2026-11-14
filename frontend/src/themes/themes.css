@@ -1,10 +1,54 @@
 /* Theme colours as CSS variables. Person 3 owns this file and the ThemeProvider
-   that sets data-theme="fantasy" | "mystery" | "romance" on the root element. */
+   that sets data-theme="fantasy" | "mystery" | "romance" on the root element.
+   Every page should use these variables instead of hard-coded colours. */
 :root {
   --color-bg: #ffffff;
+  --color-surface: #f3f4f6;
   --color-text: #1f2937;
+  --color-muted: #6b7280;
   --color-accent: #2f4f7f;
+  --color-accent-text: #ffffff;
+  --color-border: #d1d5db;
+  --radius-card: 0.75rem;
+  --font-heading: system-ui, sans-serif;
 }
-[data-theme="fantasy"] { --color-bg: #1b1030; --color-text: #f3e8ff; --color-accent: #a855f7; }
-[data-theme="mystery"] { --color-bg: #111827; --color-text: #e5e7eb; --color-accent: #94a3b8; }
-[data-theme="romance"] { --color-bg: #fff1f2; --color-text: #4c0519; --color-accent: #e11d48; }
+
+[data-theme="fantasy"] {
+  --color-bg: #1b1030;
+  --color-surface: #2a1a47;
+  --color-text: #f3e8ff;
+  --color-muted: #c4b5d9;
+  --color-accent: #a855f7;
+  --color-accent-text: #ffffff;
+  --color-border: #4a3470;
+  --radius-card: 1rem;
+  --font-heading: "Palatino Linotype", Georgia, serif;
+}
+
+[data-theme="mystery"] {
+  --color-bg: #111827;
+  --color-surface: #1f2937;
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-accent: #94a3b8;
+  --color-accent-text: #111827;
+  --color-border: #374151;
+  --radius-card: 0.25rem;
+  --font-heading: "Courier New", monospace;
+}
+
+[data-theme="romance"] {
+  --color-bg: #fff1f2;
+  --color-surface: #ffe4e6;
+  --color-text: #4c0519;
+  --color-muted: #9f1239;
+  --color-accent: #e11d48;
+  --color-accent-text: #ffffff;
+  --color-border: #fecdd3;
+  --radius-card: 1.5rem;
+  --font-heading: Georgia, "Times New Roman", serif;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+}
