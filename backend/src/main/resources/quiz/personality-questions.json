@@ -1,0 +1,84 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "text": "Which sounds like your perfect evening?",
+      "options": [
+        {"id": "A", "text": "Something fast-paced and action-heavy", "points": {"ADVENTURER": 2, "DETECTIVE": 1}},
+        {"id": "B", "text": "A quiet night with a cosy story", "points": {"COMFORT_READER": 2, "DREAMER": 1}},
+        {"id": "C", "text": "Solving a tricky puzzle", "points": {"DETECTIVE": 2, "THINKER": 1}},
+        {"id": "D", "text": "Learning something new", "points": {"SCHOLAR": 2, "THINKER": 1}}
+      ]
+    },
+    {
+      "id": 2,
+      "text": "Which trip would you pick?",
+      "options": [
+        {"id": "A", "text": "Exploring a wild, unknown place", "points": {"ADVENTURER": 2, "DREAMER": 1}},
+        {"id": "B", "text": "A cosy cabin with a pile of books", "points": {"COMFORT_READER": 2}},
+        {"id": "C", "text": "An old city full of museums and ruins", "points": {"SCHOLAR": 2, "THINKER": 1}},
+        {"id": "D", "text": "A mysterious town with secrets", "points": {"DETECTIVE": 2, "DREAMER": 1}}
+      ]
+    },
+    {
+      "id": 3,
+      "text": "What do you want most from a book?",
+      "options": [
+        {"id": "A", "text": "Thrills and excitement", "points": {"ADVENTURER": 2, "DETECTIVE": 1}},
+        {"id": "B", "text": "Beautiful language and strong feelings", "points": {"DREAMER": 2}},
+        {"id": "C", "text": "Ideas that stay with me", "points": {"THINKER": 2, "SCHOLAR": 1}},
+        {"id": "D", "text": "A happy, comforting ending", "points": {"COMFORT_READER": 2}}
+      ]
+    },
+    {
+      "id": 4,
+      "text": "Which hero do you like best?",
+      "options": [
+        {"id": "A", "text": "A brave explorer", "points": {"ADVENTURER": 2}},
+        {"id": "B", "text": "A sharp investigator", "points": {"DETECTIVE": 2}},
+        {"id": "C", "text": "A wise teacher or philosopher", "points": {"THINKER": 2, "SCHOLAR": 1}},
+        {"id": "D", "text": "A kind friend next door", "points": {"COMFORT_READER": 2, "DREAMER": 1}}
+      ]
+    },
+    {
+      "id": 5,
+      "text": "What do you do on a rainy day?",
+      "options": [
+        {"id": "A", "text": "Imagine whole new worlds", "points": {"DREAMER": 2, "ADVENTURER": 1}},
+        {"id": "B", "text": "Read about real events", "points": {"SCHOLAR": 2}},
+        {"id": "C", "text": "Work out a mystery", "points": {"DETECTIVE": 2, "THINKER": 1}},
+        {"id": "D", "text": "Rewatch something cosy", "points": {"COMFORT_READER": 2}}
+      ]
+    },
+    {
+      "id": 6,
+      "text": "Which book cover draws you in?",
+      "options": [
+        {"id": "A", "text": "A dragon and a hand-drawn map", "points": {"ADVENTURER": 2, "DREAMER": 1}},
+        {"id": "B", "text": "A dark street with long shadows", "points": {"DETECTIVE": 2}},
+        {"id": "C", "text": "Plain and minimal with a big question as the title", "points": {"THINKER": 2, "SCHOLAR": 1}},
+        {"id": "D", "text": "Flowers and soft colours", "points": {"COMFORT_READER": 2, "DREAMER": 1}}
+      ]
+    },
+    {
+      "id": 7,
+      "text": "What would your friends say about you?",
+      "options": [
+        {"id": "A", "text": "Curious about everything", "points": {"SCHOLAR": 2, "THINKER": 1}},
+        {"id": "B", "text": "Always up for an adventure", "points": {"ADVENTURER": 2}},
+        {"id": "C", "text": "A true dreamer", "points": {"DREAMER": 2}},
+        {"id": "D", "text": "Great at spotting small details", "points": {"DETECTIVE": 2, "SCHOLAR": 1}}
+      ]
+    },
+    {
+      "id": 8,
+      "text": "After finishing a book, what do you do?",
+      "options": [
+        {"id": "A", "text": "Look up the facts behind it", "points": {"SCHOLAR": 2, "DETECTIVE": 1}},
+        {"id": "B", "text": "Think about its big questions", "points": {"THINKER": 2}},
+        {"id": "C", "text": "Start the next adventure right away", "points": {"ADVENTURER": 2, "DREAMER": 1}},
+        {"id": "D", "text": "Re-read my favourite parts", "points": {"COMFORT_READER": 2, "DREAMER": 1}}
+      ]
+    }
+  ]
+}
