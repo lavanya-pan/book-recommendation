@@ -1,3 +1,4 @@
+
 package com.sds.bookrecommendation.service;
 
 import com.sds.bookrecommendation.dto.InteractionRequest;
@@ -13,9 +14,6 @@ import com.sds.bookrecommendation.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Logs user actions (view, click, save) on books.
- */
 @Service
 public class InteractionService {
 
@@ -23,22 +21,38 @@ public class InteractionService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
 
-    public InteractionService(InteractionRepository interactionRepository,
-                              UserRepository userRepository,
-                              BookRepository bookRepository) {
+    public InteractionService(
+            InteractionRepository interactionRepository,
+            UserRepository userRepository,
+            BookRepository bookRepository) {
+
         this.interactionRepository = interactionRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
     }
 
-    /** Saves one interaction. Throws 404 for an unknown user or book. */
     @Transactional
-    public InteractionResponse logInteraction(InteractionRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new UserNotFoundException(request.userId()));
+    public InteractionResponse logInteraction(
+            Long currentUserId,
+            InteractionRequest request) {
+
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() ->
+                        new UserNotFoundException(currentUserId));
+
         Book book = bookRepository.findById(request.bookId())
-                .orElseThrow(() -> new BookNotFoundException(request.bookId()));
-        Interaction saved = interactionRepository.save(new Interaction(user, book, request.type()));
+                .orElseThrow(() ->
+                        new BookNotFoundException(request.bookId()));
+
+        Interaction interaction = new Interaction(
+                user,
+                book,
+                request.type()
+        );
+
+        Interaction saved =
+                interactionRepository.save(interaction);
+
         return InteractionResponse.from(saved);
     }
 }

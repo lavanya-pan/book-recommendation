@@ -1,20 +1,15 @@
+
 package com.sds.bookrecommendation.controller;
 
 import com.sds.bookrecommendation.dto.InteractionRequest;
 import com.sds.bookrecommendation.dto.InteractionResponse;
+import com.sds.bookrecommendation.security.CurrentUser;
 import com.sds.bookrecommendation.service.InteractionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * REST endpoint for logging interactions. The frontend calls it when a Book Detail page
- * opens and when a book card is clicked.
- */
 @RestController
 @RequestMapping("/api/interactions")
 public class InteractionController {
@@ -25,11 +20,14 @@ public class InteractionController {
         this.interactionService = interactionService;
     }
 
-    /** POST /api/interactions: logs one interaction and returns 201. */
     @PostMapping
     public ResponseEntity<InteractionResponse> logInteraction(
             @Valid @RequestBody InteractionRequest request) {
+
+        Long currentUserId = CurrentUser.getId();
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(interactionService.logInteraction(request));
+                .body(interactionService.logInteraction(
+                        currentUserId, request));
     }
 }
