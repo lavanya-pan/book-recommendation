@@ -31,3 +31,11 @@ export async function getTrending(limit = 10) {
   const res = await api.get("/books/trending", { params: { limit } });
   return res.data;
 }
+
+// Best books across a list of genres, such as the genres from the personality quiz. No login needed.
+export async function getGenreRecommendations(genres, limit = 12) {
+  const res = await api.get("/recommendations/genres", {
+    params: { genres: genres.join(","), limit },
+  });
+  return res.data;
+}
