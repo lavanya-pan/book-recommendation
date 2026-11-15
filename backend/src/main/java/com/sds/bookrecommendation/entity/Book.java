@@ -22,7 +22,7 @@ public class Book {
     private String title;
 
     @NotBlank
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String author;
 
     @NotBlank

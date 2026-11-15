@@ -30,7 +30,8 @@ public class AuthController {
         User user = authService.register(
                 request.name(),
                 request.email(),
-                request.password()
+                request.password(),
+                request.readerType()
         );
 
         Map<String, Object> response = new HashMap<>();
@@ -67,14 +68,13 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Registration request data
     public record RegisterRequest(
             String name,
             String email,
-            String password
+            String password,
+            String readerType
     ) {}
 
-    // Login request data
     public record LoginRequest(
             String email,
             String password
