@@ -1,0 +1,10 @@
+
+### Test user registration
+POST http://localhost:8081/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "Test@123"
+}
