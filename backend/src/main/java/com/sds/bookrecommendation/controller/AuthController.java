@@ -35,7 +35,7 @@ public class AuthController {
 
         Map<String, Object> response = new HashMap<>();
 
-        response.put("userId", user.getId());
+        response.put("id", user.getId());
         response.put("name", user.getName());
         response.put("email", user.getEmail());
 
@@ -56,7 +56,7 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
 
         response.put("token", token);
-        response.put("userId", user.getId());
+        response.put("id", user.getId());
         response.put("name", user.getName());
         response.put("email", user.getEmail());
 

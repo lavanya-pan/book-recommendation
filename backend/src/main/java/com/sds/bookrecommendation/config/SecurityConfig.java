@@ -31,27 +31,28 @@ public class SecurityConfig {
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
 
-                        // Allow browser preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Registration and login are public
+                        // Authentication
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // Health check is public
+                        // Public endpoints
                         .requestMatchers("/api/health").permitAll()
-
-                        // Public book reading endpoints
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recommendation-types").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/recommendations/genres").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/recommendations").permitAll()
+                        .requestMatchers("/api/quiz/**").permitAll()
 
-                        // Only ADMIN can create, update or delete books
+                        // Admin-only endpoints
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // Only ADMIN can modify books
                         .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/books/**").hasRole("ADMIN")
@@ -64,10 +65,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // All remaining endpoints require login
                         .anyRequest().authenticated()
                 )
-
                 .addFilterBefore(
                         jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -76,13 +75,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Password encryption
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // CORS configuration for frontend
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
