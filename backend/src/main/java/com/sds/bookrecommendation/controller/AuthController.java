@@ -38,8 +38,6 @@ public class AuthController {
         response.put("userId", user.getId());
         response.put("name", user.getName());
         response.put("email", user.getEmail());
-        response.put("readerType", user.getReaderType());
-        response.put("theme", user.getTheme());
 
         return ResponseEntity.ok(response);
     }
@@ -61,20 +59,18 @@ public class AuthController {
         response.put("userId", user.getId());
         response.put("name", user.getName());
         response.put("email", user.getEmail());
-        response.put("readerType", user.getReaderType());
-        response.put("theme", user.getTheme());
 
         return ResponseEntity.ok(response);
     }
 
-    // Registration request data
+    // Registration request
     public record RegisterRequest(
             String name,
             String email,
             String password
     ) {}
 
-    // Login request data
+    // Login request
     public record LoginRequest(
             String email,
             String password

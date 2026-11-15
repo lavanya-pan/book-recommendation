@@ -57,8 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     if (user != null &&
                             jwtService.isTokenValid(token, user)) {
 
-                        String role = user.getRole() == null
-                                ? "USER" : user.getRole();
+                        String role = "USER";
 
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
