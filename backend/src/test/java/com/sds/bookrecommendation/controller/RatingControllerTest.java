@@ -1,12 +1,13 @@
 
 package com.sds.bookrecommendation.controller;
 
+import com.sds.bookrecommendation.entity.User;
 import com.sds.bookrecommendation.dto.RatingResponse;
 import com.sds.bookrecommendation.exception.DuplicateRatingException;
 import com.sds.bookrecommendation.exception.RatingNotFoundException;
 import com.sds.bookrecommendation.exception.UserNotFoundException;
 import com.sds.bookrecommendation.repository.UserRepository;
-import com.sds.bookrecommendation.security.JwtService;
+import com.sds.bookrecommendation.service.JWTService;
 import com.sds.bookrecommendation.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,16 +45,19 @@ class RatingControllerTest {
     private RatingService ratingService;
 
     @MockBean
-    private JwtService jwtService;
+    private JWTService jwtService;
 
     @MockBean
     private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
+        User user = new User("Test User", "test@example.com");
+        user.setId(1L);
+
         UsernamePasswordAuthenticationToken authentication =
                 UsernamePasswordAuthenticationToken.authenticated(
-                        1L,
+                        user,
                         null,
                         List.of()
                 );

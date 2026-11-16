@@ -1,12 +1,8 @@
 
 package com.sds.bookrecommendation.service;
 
-import com.sds.bookrecommendation.dto.AuthResponse;
-import com.sds.bookrecommendation.dto.LoginRequest;
-import com.sds.bookrecommendation.dto.RegisterRequest;
 import com.sds.bookrecommendation.entity.User;
 import com.sds.bookrecommendation.repository.UserRepository;
-import com.sds.bookrecommendation.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,17 +27,11 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtService jwtService;
-
     @InjectMocks
     private AuthService authService;
 
     @Test
     void register_success() {
-
-        RegisterRequest request =
-                new RegisterRequest("  Charu  ", " TEST@GMAIL.COM ", "password123");
 
         when(userRepository.existsByEmail("test@gmail.com"))
                 .thenReturn(false);
@@ -56,119 +46,143 @@ class AuthServiceTest {
                     return user;
                 });
 
-        when(jwtService.generateToken(1L, "test@gmail.com"))
-                .thenReturn("test-token");
+        User savedUser = authService.register(
+                "  Charu  ",
+                " TEST@GMAIL.COM ",
+                "password123"
+        );
 
-        AuthResponse response = authService.register(request);
+        assertEquals(1L, savedUser.getId());
+        assertEquals("Charu", savedUser.getName());
+        assertEquals("test@gmail.com", savedUser.getEmail());
+        assertEquals("hashedPassword", savedUser.getPasswordHash());
 
-        assertEquals(1L, response.userId());
-        assertEquals("Charu", response.name());
-        assertEquals("test@gmail.com", response.email());
-        assertEquals("test-token", response.token());
-        assertEquals("Bearer", response.tokenType());
-
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).existsByEmail("test@gmail.com");
         verify(passwordEncoder).encode("password123");
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
     void register_duplicateEmail_throwsConflict() {
-
-        RegisterRequest request =
-                new RegisterRequest("Charu", "test@gmail.com", "password123");
 
         when(userRepository.existsByEmail("test@gmail.com"))
                 .thenReturn(true);
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> authService.register(request)
+                () -> authService.register(
+                        "Charu",
+                        "test@gmail.com",
+                        "password123"
+                )
         );
 
-        assertEquals(
-                HttpStatus.CONFLICT,
-                exception.getStatusCode()
-        );
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
 
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
+    void register_shortPassword_throwsBadRequest() {
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> authService.register(
+                        "Charu",
+                        "test@gmail.com",
+                        "123"
+                )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
     void login_success() {
 
-        LoginRequest request =
-                new LoginRequest(" TEST@GMAIL.COM ", "password123");
-
-        User user = mock(User.class);
+        User user = new User("Charu", "test@gmail.com");
+        user.setId(1L);
+        user.setPasswordHash("hashedPassword");
 
         when(userRepository.findByEmail("test@gmail.com"))
                 .thenReturn(Optional.of(user));
 
-        when(user.getPassword()).thenReturn("hashedPassword");
         when(passwordEncoder.matches("password123", "hashedPassword"))
                 .thenReturn(true);
 
-        when(user.getId()).thenReturn(1L);
-        when(user.getName()).thenReturn("Charu");
-        when(user.getEmail()).thenReturn("test@gmail.com");
+        User loggedInUser = authService.login(
+                " TEST@GMAIL.COM ",
+                "password123"
+        );
 
-        when(jwtService.generateToken(1L, "test@gmail.com"))
-                .thenReturn("login-token");
+        assertEquals(1L, loggedInUser.getId());
+        assertEquals("Charu", loggedInUser.getName());
+        assertEquals("test@gmail.com", loggedInUser.getEmail());
 
-        AuthResponse response = authService.login(request);
-
-        assertEquals(1L, response.userId());
-        assertEquals("Charu", response.name());
-        assertEquals("test@gmail.com", response.email());
-        assertEquals("login-token", response.token());
-        assertEquals("Bearer", response.tokenType());
+        verify(passwordEncoder).matches("password123", "hashedPassword");
     }
 
     @Test
     void login_unknownEmail_throwsUnauthorized() {
-
-        LoginRequest request =
-                new LoginRequest("unknown@gmail.com", "password123");
 
         when(userRepository.findByEmail("unknown@gmail.com"))
                 .thenReturn(Optional.empty());
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> authService.login(request)
+                () -> authService.login(
+                        "unknown@gmail.com",
+                        "password123"
+                )
         );
 
-        assertEquals(
-                HttpStatus.UNAUTHORIZED,
-                exception.getStatusCode()
-        );
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
     }
 
     @Test
     void login_wrongPassword_throwsUnauthorized() {
 
-        LoginRequest request =
-                new LoginRequest("test@gmail.com", "wrongpassword");
-
-        User user = mock(User.class);
+        User user = new User("Charu", "test@gmail.com");
+        user.setPasswordHash("hashedPassword");
 
         when(userRepository.findByEmail("test@gmail.com"))
                 .thenReturn(Optional.of(user));
 
-        when(user.getPassword()).thenReturn("hashedPassword");
-
-        when(passwordEncoder.matches(
-                "wrongpassword", "hashedPassword"))
+        when(passwordEncoder.matches("wrongpassword", "hashedPassword"))
                 .thenReturn(false);
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> authService.login(request)
+                () -> authService.login(
+                        "test@gmail.com",
+                        "wrongpassword"
+                )
         );
 
-        assertEquals(
-                HttpStatus.UNAUTHORIZED,
-                exception.getStatusCode()
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+    }
+
+    @Test
+    void login_nullPasswordHash_throwsUnauthorized() {
+
+        User user = new User("Charu", "test@gmail.com");
+
+        when(userRepository.findByEmail("test@gmail.com"))
+                .thenReturn(Optional.of(user));
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> authService.login(
+                        "test@gmail.com",
+                        "password123"
+                )
         );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+
+        verifyNoInteractions(passwordEncoder);
     }
 }

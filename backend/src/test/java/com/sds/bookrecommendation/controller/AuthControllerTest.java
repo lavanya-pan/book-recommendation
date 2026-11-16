@@ -1,25 +1,30 @@
 
 package com.sds.bookrecommendation.controller;
 
-import com.sds.bookrecommendation.dto.AuthResponse;
-import com.sds.bookrecommendation.security.JwtService;
+import com.sds.bookrecommendation.entity.User;
 import com.sds.bookrecommendation.repository.UserRepository;
 import com.sds.bookrecommendation.service.AuthService;
+import com.sds.bookrecommendation.service.JWTService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@SpringBootTest(properties = {
+        "jwt.secret=VGhpc0lzQVRlc3RTZWNyZXRLZXlGb3JCb29rUmVjb21tZW5kYXRpb24=",
+        "jwt.expiration=86400000"
+})
+@AutoConfigureMockMvc
 class AuthControllerTest {
 
     @Autowired
@@ -29,95 +34,49 @@ class AuthControllerTest {
     private AuthService authService;
 
     @MockBean
-    private JwtService jwtService;
+    private JWTService jwtService;
 
     @MockBean
     private UserRepository userRepository;
 
     @Test
-    void register_validRequest_returnsCreated() throws Exception {
-
-        when(authService.register(any()))
-                .thenReturn(new AuthResponse(
-                        1L, "Charu", "charu@gmail.com",
-                        "register-token", "Bearer"
-                ));
-
-        mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "name": "Charu",
-                                    "email": "charu@gmail.com",
-                                    "password": "password123"
-                                }
-                                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.name").value("Charu"))
-                .andExpect(jsonPath("$.email").value("charu@gmail.com"))
-                .andExpect(jsonPath("$.token").value("register-token"))
-                .andExpect(jsonPath("$.tokenType").value("Bearer"));
-
-        verify(authService).register(any());
+    void publicEndpoint_returns200WithoutToken() throws Exception {
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void register_invalidRequest_returnsBadRequest() throws Exception {
-
-        mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "name": "",
-                                    "email": "invalid-email",
-                                    "password": "123"
-                                }
-                                """))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(authService);
+    void protectedEndpoint_returns403WithoutToken()throws Exception {
+        mockMvc.perform(get("/api/users/1/wishlist"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    void login_validRequest_returnsOk() throws Exception {
+    void login_returnsToken() throws Exception {
 
-        when(authService.login(any()))
-                .thenReturn(new AuthResponse(
-                        1L, "Charu", "charu@gmail.com",
-                        "login-token", "Bearer"
-                ));
+        User user = new User("Test User", "test@example.com");
+        user.setId(1L);
+        user.setPasswordHash("hashed-password");
+
+        when(authService.login("test@example.com", "password123"))
+                .thenReturn(user);
+
+        when(jwtService.generateToken(user))
+                .thenReturn("test-jwt-token");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                    "email": "charu@gmail.com",
+                                    "email": "test@example.com",
                                     "password": "password123"
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.email").value("charu@gmail.com"))
-                .andExpect(jsonPath("$.token").value("login-token"))
-                .andExpect(jsonPath("$.tokenType").value("Bearer"));
-
-        verify(authService).login(any());
-    }
-
-    @Test
-    void login_invalidRequest_returnsBadRequest() throws Exception {
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                    "email": "invalid-email",
-                                    "password": ""
-                                }
-                                """))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(authService);
+                .andExpect(jsonPath("$.token").value("test-jwt-token"))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Test User"))
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
     }
 }
