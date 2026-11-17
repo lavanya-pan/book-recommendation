@@ -14,3 +14,13 @@ export async function updateMyProfile(name, email) {
     const response = await api.put("/users/me", { name, email });
     return response.data;
 }
+
+export async function updateMyTheme(theme) {
+    const response = await api.put("/users/me/theme", { theme });
+    return response.data;
+}
+
+export async function getMyRatings(userId) {
+    const response = await api.get(`/ratings/user/${userId}`);
+    return response.data;
+}
