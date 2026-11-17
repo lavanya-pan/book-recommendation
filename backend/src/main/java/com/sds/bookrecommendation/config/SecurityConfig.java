@@ -46,7 +46,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recommendation-types").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recommendations/genres").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/*/recommendations").permitAll()
                         .requestMatchers("/api/quiz/**").permitAll()
 
                         // Admin-only endpoints

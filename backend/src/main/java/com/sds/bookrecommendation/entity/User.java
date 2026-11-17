@@ -5,14 +5,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A registered user who can rate books and receive recommendations.
- * The table is named app_users because user is a reserved word
- * in some databases.
- */
 @Entity
 @Table(name = "app_users")
 public class User {
@@ -30,20 +26,26 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    // BCrypt encrypted password
-    @Column(name = "password_hash")
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
-    // Default role for newly registered users
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
     @Column(nullable = false)
     private String role = "USER";
 
-    /**
-     * All ratings given by this user.
-     */
-    @OneToMany(mappedBy = "user",
+    @Column(name = "reader_type")
+    private String readerType;
+
+    @Column(name = "theme")
+    private String theme;
+
+    @OneToMany(
+            mappedBy = "user",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true
+    )
     private List<Rating> ratings = new ArrayList<>();
 
     public User() {
@@ -53,6 +55,17 @@ public class User {
         this.name = name;
         this.email = email;
         this.role = "USER";
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+
+        if (role == null || role.isBlank()) {
+            role = "USER";
+        }
     }
 
     public Long getId() {
@@ -87,12 +100,32 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public String getRole() {
         return role;
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getReaderType() {
+        return readerType;
+    }
+
+    public void setReaderType(String readerType) {
+        this.readerType = readerType;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 
     public List<Rating> getRatings() {

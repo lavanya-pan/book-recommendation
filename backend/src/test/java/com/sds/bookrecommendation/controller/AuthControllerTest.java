@@ -46,7 +46,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void protectedEndpoint_returns401WithoutToken() throws Exception {
+    void protectedEndpoint_returns403WithoutToken()throws Exception {
         mockMvc.perform(get("/api/users/1/wishlist"))
                 .andExpect(status().isForbidden());
     }

@@ -1,3 +1,4 @@
+
 package com.sds.bookrecommendation.service;
 
 import com.sds.bookrecommendation.dto.RatingRequest;
@@ -15,13 +16,11 @@ import com.sds.bookrecommendation.repository.RatingRepository;
 import com.sds.bookrecommendation.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Business rules for ratings: create, update, delete and list.
- * After every change the book's average rating and rating count are recomputed.
- */
 @Service
 public class RatingService {
 
@@ -29,69 +28,136 @@ public class RatingService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
-    public RatingService(RatingRepository ratingRepository,
-                         BookRepository bookRepository,
-                         UserRepository userRepository) {
+    public RatingService(
+            RatingRepository ratingRepository,
+            BookRepository bookRepository,
+            UserRepository userRepository) {
+
         this.ratingRepository = ratingRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
     }
 
-    /**
-     * Saves a new rating. Throws 404 for an unknown user or book,
-     * and 409 if the user already rated this book.
-     */
+    // Create a rating for the currently authenticated user
     @Transactional
-    public RatingResponse rateBook(RatingRequest request) {
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new UserNotFoundException(request.userId()));
-        Book book = bookRepository.findById(request.bookId())
-                .orElseThrow(() -> new BookNotFoundException(request.bookId()));
+    public RatingResponse rateBook(
+            Long currentUserId,
+            RatingRequest request) {
 
-        if (ratingRepository.findByUserIdAndBookId(user.getId(), book.getId()).isPresent()) {
-            throw new DuplicateRatingException(user.getId(), book.getId());
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() ->
+                        new UserNotFoundException(currentUserId));
+
+        Book book = bookRepository.findById(request.bookId())
+                .orElseThrow(() ->
+                        new BookNotFoundException(request.bookId()));
+
+        if (ratingRepository.findByUserIdAndBookId(
+                currentUserId, book.getId()).isPresent()) {
+
+            throw new DuplicateRatingException(
+                    currentUserId, book.getId());
         }
 
-        Rating saved = ratingRepository.save(new Rating(user, book, request.score()));
-        refreshBookStats(book);
-        return RatingResponse.from(saved);
-    }
+        Rating rating = new Rating(
+                user,
+                book,
+                request.score()
+        );
 
-    /** Changes the score of an existing rating and updates the book's average. */
-    @Transactional
-    public RatingResponse updateRating(Long ratingId, RatingUpdateRequest request) {
-        Rating rating = ratingRepository.findById(ratingId)
-                .orElseThrow(() -> new RatingNotFoundException(ratingId));
-        rating.setScore(request.score());
         Rating saved = ratingRepository.save(rating);
-        refreshBookStats(saved.getBook());
+
+        refreshBookStats(book);
+
         return RatingResponse.from(saved);
     }
 
-    /** Deletes a rating and updates the book's average and count. */
+    // Update a rating only if it belongs to the logged-in user
     @Transactional
-    public void deleteRating(Long ratingId) {
+    public RatingResponse updateRating(
+            Long ratingId,
+            Long currentUserId,
+            RatingUpdateRequest request) {
+
         Rating rating = ratingRepository.findById(ratingId)
-                .orElseThrow(() -> new RatingNotFoundException(ratingId));
+                .orElseThrow(() ->
+                        new RatingNotFoundException(ratingId));
+
+        checkOwnership(rating, currentUserId);
+
+        rating.setScore(request.score());
+
+        Rating saved = ratingRepository.save(rating);
+
+        refreshBookStats(saved.getBook());
+
+        return RatingResponse.from(saved);
+    }
+
+    // Delete a rating only if it belongs to the logged-in user
+    @Transactional
+    public void deleteRating(
+            Long ratingId,
+            Long currentUserId) {
+
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() ->
+                        new RatingNotFoundException(ratingId));
+
+        checkOwnership(rating, currentUserId);
+
         Book book = rating.getBook();
+
         ratingRepository.delete(rating);
+
         refreshBookStats(book);
     }
 
-    /** Returns one page of a user's ratings. Throws 404 if the user does not exist. */
+    // Check whether the rating belongs to the authenticated user
+    private void checkOwnership(
+            Rating rating,
+            Long currentUserId) {
+
+        if (rating.getUser() == null ||
+                !currentUserId.equals(rating.getUser().getId())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You can only modify your own ratings"
+            );
+        }
+    }
+
+    // Get ratings belonging to a particular user
     @Transactional(readOnly = true)
-    public Page<RatingResponse> getRatingsByUser(Long userId, Pageable pageable) {
+    public Page<RatingResponse> getRatingsByUser(
+            Long userId,
+            Pageable pageable) {
+
         if (!userRepository.existsById(userId)) {
             throw new UserNotFoundException(userId);
         }
-        return ratingRepository.findByUserId(userId, pageable).map(RatingResponse::from);
+
+        return ratingRepository
+                .findByUserId(userId, pageable)
+                .map(RatingResponse::from);
     }
 
-    /** Recomputes the book's average rating (rounded to 2 decimals) and rating count. */
+    // Recalculate book average rating and rating count
     private void refreshBookStats(Book book) {
-        double average = ratingRepository.averageScoreByBookId(book.getId());
-        book.setAvgRating(Math.round(average * 100) / 100.0);
-        book.setRatingCount((int) ratingRepository.countByBookId(book.getId()));
+
+        double average =
+                ratingRepository.averageScoreByBookId(book.getId());
+
+        long count =
+                ratingRepository.countByBookId(book.getId());
+
+        book.setAvgRating(
+                Math.round(average * 100) / 100.0
+        );
+
+        book.setRatingCount((int) count);
+
         bookRepository.save(book);
     }
 }

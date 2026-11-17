@@ -54,26 +54,36 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     User user = userRepository.findById(userId)
                             .orElse(null);
 
-                    if (user != null &&
-                            jwtService.isTokenValid(token, user)) {
+                    if (user != null
+                            && jwtService.isTokenValid(token, user)) {
 
                         String role = user.getRole();
 
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(
-                                        user,
-                                        null,
-                                        List.of(new SimpleGrantedAuthority(
-                                                "ROLE_" + role))
-                                );
+                        if (role != null
+                                && !role.isBlank()
+                                && !"null".equalsIgnoreCase(role.trim())) {
 
-                        authentication.setDetails(
-                                new WebAuthenticationDetailsSource()
-                                        .buildDetails(request)
-                        );
+                            role = role.trim();
 
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authentication);
+                            String authority = role.startsWith("ROLE_")
+                                    ? role
+                                    : "ROLE_" + role;
+
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(
+                                            user,
+                                            null,
+                                            List.of(new SimpleGrantedAuthority(authority))
+                                    );
+
+                            authentication.setDetails(
+                                    new WebAuthenticationDetailsSource()
+                                            .buildDetails(request)
+                            );
+
+                            SecurityContextHolder.getContext()
+                                    .setAuthentication(authentication);
+                        }
                     }
                 }
 

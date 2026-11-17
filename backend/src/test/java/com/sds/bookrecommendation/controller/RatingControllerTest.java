@@ -1,14 +1,15 @@
 
 package com.sds.bookrecommendation.controller;
 
+import com.sds.bookrecommendation.entity.User;
 import com.sds.bookrecommendation.dto.RatingResponse;
 import com.sds.bookrecommendation.exception.DuplicateRatingException;
 import com.sds.bookrecommendation.exception.RatingNotFoundException;
 import com.sds.bookrecommendation.exception.UserNotFoundException;
 import com.sds.bookrecommendation.repository.UserRepository;
-import com.sds.bookrecommendation.service.RatingService;
 import com.sds.bookrecommendation.service.JWTService;
-
+import com.sds.bookrecommendation.service.RatingService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,6 +17,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -23,15 +26,15 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(RatingController.class)
+@WebMvcTest(
+        controllers = RatingController.class,
+        excludeAutoConfiguration =
+                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+)
 @AutoConfigureMockMvc(addFilters = false)
 class RatingControllerTest {
 
@@ -47,16 +50,37 @@ class RatingControllerTest {
     @MockBean
     private UserRepository userRepository;
 
+    @BeforeEach
+    void setUp() {
+        User user = new User("Test User", "test@example.com");
+        user.setId(1L);
+
+        UsernamePasswordAuthenticationToken authentication =
+                UsernamePasswordAuthenticationToken.authenticated(
+                        user,
+                        null,
+                        List.of()
+                );
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
+    }
+
     private static RatingResponse response(long id, int score) {
         return new RatingResponse(
-                id, 1L, 1L, "Test Book", score,
+                id,
+                1L,
+                1L,
+                "Test Book",
+                score,
                 LocalDateTime.of(2026, 11, 14, 10, 0)
         );
     }
 
     @Test
     void createRating_returns201() throws Exception {
-        when(ratingService.rateBook(any())).thenReturn(response(1, 4));
+        when(ratingService.rateBook(eq(1L), any()))
+                .thenReturn(response(1, 4));
 
         mockMvc.perform(post("/api/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -64,6 +88,8 @@ class RatingControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.score").value(4));
+
+        verify(ratingService).rateBook(eq(1L), any());
     }
 
     @Test
@@ -72,6 +98,8 @@ class RatingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userId\":1,\"bookId\":1,\"score\":6}"))
                 .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(ratingService);
     }
 
     @Test
@@ -92,7 +120,7 @@ class RatingControllerTest {
 
     @Test
     void createRating_duplicate_returns409() throws Exception {
-        when(ratingService.rateBook(any()))
+        when(ratingService.rateBook(eq(1L), any()))
                 .thenThrow(new DuplicateRatingException(1L, 1L));
 
         mockMvc.perform(post("/api/ratings")
@@ -105,7 +133,7 @@ class RatingControllerTest {
 
     @Test
     void updateRating_returns200() throws Exception {
-        when(ratingService.updateRating(eq(10L), any()))
+        when(ratingService.updateRating(eq(10L), eq(1L), any()))
                 .thenReturn(response(10, 2));
 
         mockMvc.perform(put("/api/ratings/10")
@@ -113,11 +141,14 @@ class RatingControllerTest {
                         .content("{\"score\":2}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.score").value(2));
+
+        verify(ratingService)
+                .updateRating(eq(10L), eq(1L), any());
     }
 
     @Test
     void updateRating_unknownId_returns404() throws Exception {
-        when(ratingService.updateRating(eq(99L), any()))
+        when(ratingService.updateRating(eq(99L), eq(1L), any()))
                 .thenThrow(new RatingNotFoundException(99L));
 
         mockMvc.perform(put("/api/ratings/99")
@@ -129,8 +160,12 @@ class RatingControllerTest {
 
     @Test
     void deleteRating_returns204() throws Exception {
+        doNothing().when(ratingService).deleteRating(10L, 1L);
+
         mockMvc.perform(delete("/api/ratings/10"))
                 .andExpect(status().isNoContent());
+
+        verify(ratingService).deleteRating(10L, 1L);
     }
 
     @Test
