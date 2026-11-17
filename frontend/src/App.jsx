@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 
@@ -13,6 +12,7 @@ import Wishlist from "./pages/Wishlist.jsx";
 import ReadingHistory from "./pages/ReadingHistory.jsx";
 
 import ThemeSwitcher from "./components/ThemeSwitcher.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 export default function App() {
@@ -73,7 +73,7 @@ export default function App() {
                         {isLoggedIn ? (
                             <>
                                 <Link to="/profile" className={navLinkClass("/profile")}>
-                                    {user?.name || "My Profile"}
+                                    {user?.name || "Profile"}
                                 </Link>
                                 <button
                                     onClick={handleLogout}
@@ -107,7 +107,7 @@ export default function App() {
                     </button>
                 </nav>
 
-                {/* Mobile navigation: horizontal scroll, not vertical list */}
+                {/* Mobile navigation */}
                 {menuOpen && (
                     <div className="border-t border-[var(--color-text)]/15 px-3 py-2 lg:hidden">
                         <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
@@ -120,7 +120,9 @@ export default function App() {
                                 <>
                                     <Link to="/wishlist" className={navLinkClass("/wishlist")} onClick={closeMenu}>Wishlist</Link>
                                     <Link to="/reading-history" className={navLinkClass("/reading-history")} onClick={closeMenu}>Reading History</Link>
-                                    <Link to="/profile" className={navLinkClass("/profile")} onClick={closeMenu}>My Profile</Link>
+                                    <Link to="/profile" className={navLinkClass("/profile")} onClick={closeMenu}>
+                                        {user?.name || "Profile"}
+                                    </Link>
                                 </>
                             )}
 
@@ -157,9 +159,30 @@ export default function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
-                    <Route path="/profile" element={isLoggedIn ? <Profile /> : <Login />} />
-                    <Route path="/wishlist" element={isLoggedIn ? <Wishlist /> : <Login />} />
-                    <Route path="/reading-history" element={isLoggedIn ? <ReadingHistory /> : <Login />} />
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/wishlist"
+                        element={
+                            <ProtectedRoute>
+                                <Wishlist />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/reading-history"
+                        element={
+                            <ProtectedRoute>
+                                <ReadingHistory />
+                            </ProtectedRoute>
+                        }
+                    />
                 </Routes>
             </main>
         </div>
