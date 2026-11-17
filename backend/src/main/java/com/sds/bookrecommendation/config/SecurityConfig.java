@@ -1,4 +1,3 @@
-
 package com.sds.bookrecommendation.config;
 
 import org.springframework.context.annotation.Bean;
@@ -21,10 +20,12 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
+    // Initializes SecurityConfig with JwtAuthFilter.
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    // Configures HTTP security rules, stateless sessions, and JWT filter.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
@@ -74,11 +75,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // Provides BCrypt password encoder bean.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Configures CORS to allow requests from the Vite frontend at http://localhost:5173.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
