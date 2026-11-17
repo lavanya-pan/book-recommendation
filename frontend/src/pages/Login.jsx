@@ -9,17 +9,44 @@ export default function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
+
+    function validate() {
+        const nextErrors = {};
+        const trimmedEmail = email.trim();
+
+        if (!trimmedEmail) {
+            nextErrors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            nextErrors.email = "Please enter a valid email address.";
+        }
+
+        if (!password) {
+            nextErrors.password = "Password is required.";
+        } else if (password.length < 6) {
+            nextErrors.password = "Password must be at least 6 characters.";
+        }
+
+        setFieldErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
 
     async function handleSubmit(event) {
         event.preventDefault();
         setError("");
+
+        if (!validate()) {
+            return;
+        }
+
         setSubmitting(true);
 
         try {
             await login(email.trim(), password);
-            navigate("/");
+            const redirectTo = location.state?.from?.pathname || "/";
+            navigate(redirectTo, { replace: true });
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -46,15 +73,17 @@ export default function Login() {
                 Log in to your book recommendation account.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
                 <label className="block">
                     <span className="text-sm font-medium">Email</span>
                     <input
                         type="email"
-                        required
                         autoComplete="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, email: "" }));
+                        }}
                         className="mt-1 w-full rounded-lg border p-3"
                         style={{
                             background: "var(--color-surface)",
@@ -62,16 +91,23 @@ export default function Login() {
                             borderColor: "var(--color-border)",
                         }}
                     />
+                    {fieldErrors.email && (
+                        <p role="alert" className="mt-1 text-sm text-red-600">
+                            {fieldErrors.email}
+                        </p>
+                    )}
                 </label>
 
                 <label className="block">
                     <span className="text-sm font-medium">Password</span>
                     <input
                         type="password"
-                        required
                         autoComplete="current-password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, password: "" }));
+                        }}
                         className="mt-1 w-full rounded-lg border p-3"
                         style={{
                             background: "var(--color-surface)",
@@ -79,6 +115,11 @@ export default function Login() {
                             borderColor: "var(--color-border)",
                         }}
                     />
+                    {fieldErrors.password && (
+                        <p role="alert" className="mt-1 text-sm text-red-600">
+                            {fieldErrors.password}
+                        </p>
+                    )}
                 </label>
 
                 {error && (
