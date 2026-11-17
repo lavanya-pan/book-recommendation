@@ -8,12 +8,45 @@ export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
+
+    function validate() {
+        const nextErrors = {};
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim();
+
+        if (!trimmedName) {
+            nextErrors.name = "Name is required.";
+        } else if (trimmedName.length < 2) {
+            nextErrors.name = "Name must be at least 2 characters.";
+        }
+
+        if (!trimmedEmail) {
+            nextErrors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            nextErrors.email = "Please enter a valid email address.";
+        }
+
+        if (!password) {
+            nextErrors.password = "Password is required.";
+        } else if (password.length < 6) {
+            nextErrors.password = "Password must be at least 6 characters.";
+        }
+
+        setFieldErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    }
 
     async function handleSubmit(event) {
         event.preventDefault();
         setError("");
+
+        if (!validate()) {
+            return;
+        }
+
         setSubmitting(true);
 
         try {
@@ -41,14 +74,16 @@ export default function Register() {
                 Join us and discover your next favourite book.
             </p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
                 <label className="block">
                     <span className="text-sm font-medium">Name</span>
                     <input
                         type="text"
-                        required
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, name: "" }));
+                        }}
                         className="mt-1 w-full rounded-lg border p-3"
                         style={{
                             background: "var(--color-surface)",
@@ -56,16 +91,23 @@ export default function Register() {
                             borderColor: "var(--color-border)",
                         }}
                     />
+                    {fieldErrors.name && (
+                        <p role="alert" className="mt-1 text-sm text-red-600">
+                            {fieldErrors.name}
+                        </p>
+                    )}
                 </label>
 
                 <label className="block">
                     <span className="text-sm font-medium">Email</span>
                     <input
                         type="email"
-                        required
                         autoComplete="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, email: "" }));
+                        }}
                         className="mt-1 w-full rounded-lg border p-3"
                         style={{
                             background: "var(--color-surface)",
@@ -73,17 +115,23 @@ export default function Register() {
                             borderColor: "var(--color-border)",
                         }}
                     />
+                    {fieldErrors.email && (
+                        <p role="alert" className="mt-1 text-sm text-red-600">
+                            {fieldErrors.email}
+                        </p>
+                    )}
                 </label>
 
                 <label className="block">
                     <span className="text-sm font-medium">Password</span>
                     <input
                         type="password"
-                        required
-                        minLength={6}
                         autoComplete="new-password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, password: "" }));
+                        }}
                         className="mt-1 w-full rounded-lg border p-3"
                         style={{
                             background: "var(--color-surface)",
@@ -91,6 +139,11 @@ export default function Register() {
                             borderColor: "var(--color-border)",
                         }}
                     />
+                    {fieldErrors.password && (
+                        <p role="alert" className="mt-1 text-sm text-red-600">
+                            {fieldErrors.password}
+                        </p>
+                    )}
                 </label>
 
                 {error && (
