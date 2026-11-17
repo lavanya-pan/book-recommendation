@@ -60,6 +60,31 @@ public class UserProfileService {
         return userRepository.save(user);
     }
 
+
+    @Transactional
+    public User updateProfile(Long userId, String name, String email) {
+
+        User user = getProfile(userId);
+
+        String updatedName = name.trim();
+        String updatedEmail = email.trim();
+
+        // Check whether another account already uses this email.
+        userRepository.findByEmail(updatedEmail)
+                .filter(existing -> !existing.getId().equals(userId))
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "Email is already registered"
+                    );
+                });
+
+        user.setName(updatedName);
+        user.setEmail(updatedEmail);
+
+        return userRepository.save(user);
+    }
+
     @Transactional
     public void deleteAccount(Long userId) {
 

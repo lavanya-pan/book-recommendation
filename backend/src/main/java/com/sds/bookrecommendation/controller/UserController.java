@@ -20,6 +20,7 @@ public class UserController {
         this.userProfileService = userProfileService;
     }
 
+    // Get logged-in user's profile
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyProfile() {
 
@@ -38,6 +39,43 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    // Update logged-in user's name and email
+    @PutMapping("/me")
+    public ResponseEntity<Map<String, Object>> updateMyProfile(
+            @RequestBody Map<String, String> request) {
+
+        String name = request.get("name");
+        String email = request.get("email");
+
+        if (name == null || name.isBlank()) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("message", "Name is required")
+            );
+        }
+
+        if (email == null || email.isBlank()
+                || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            return ResponseEntity.badRequest().body(
+                    Map.of("message", "A valid email is required")
+            );
+        }
+
+        User user = userProfileService.updateProfile(
+                CurrentUser.getId(),
+                name,
+                email
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "userId", user.getId(),
+                        "name", user.getName(),
+                        "email", user.getEmail()
+                )
+        );
+    }
+
+    // Update theme
     @PutMapping("/me/theme")
     public ResponseEntity<Map<String, Object>> updateMyTheme(
             @RequestBody Map<String, String> request) {
@@ -65,6 +103,7 @@ public class UserController {
         );
     }
 
+    // Update reader type
     @PutMapping("/me/reader-type")
     public ResponseEntity<Map<String, Object>> updateMyReaderType(
             @RequestBody Map<String, String> request) {
@@ -90,6 +129,7 @@ public class UserController {
         );
     }
 
+    // Delete logged-in user's account
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMyAccount() {
 
