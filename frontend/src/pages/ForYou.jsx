@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import RecommendationCard from "../components/RecommendationCard.jsx";
 import PopularRows from "../components/PopularRows.jsx";
 import {
@@ -29,8 +30,9 @@ export default function ForYou() {
     .filter(Boolean);
   const quizKey = quizGenres.join(",");
 
-  // Until login exists (Person 2), the user is picked by typing an ID.
-  const [userId, setUserId] = useState("1");
+  // The user comes from the login (AuthContext).
+  const { user } = useAuth();
+  const userId = user ? user.id : "";
   const [types, setTypes] = useState(["hybrid"]);
   const [type, setType] = useState("hybrid");
   const [books, setBooks] = useState([]);
@@ -129,16 +131,14 @@ export default function ForYou() {
       )}
 
       <div className="mt-6 flex flex-wrap items-end gap-4">
-        <label className="flex flex-col text-sm">
-          User ID
-          <input
-            type="number"
-            min="1"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            className={`mt-1 w-28 ${inputClass}`}
-          />
-        </label>
+        {user ? (
+          <p className="text-sm">Showing picks for {user.name}</p>
+        ) : (
+          <p className="text-sm">
+            <Link to="/login" className="underline">Log in</Link> to see your
+            personal picks.
+          </p>
+        )}
         <label className="flex flex-col text-sm">
           Recommendation type
           <select
@@ -164,7 +164,9 @@ export default function ForYou() {
         )}
         {status === "ready" && books.length === 0 && (
           <p>
-            No recommendations yet. Rate a few books you enjoyed and check back.
+            {user
+              ? "No recommendations yet. Rate a few books you enjoyed and check back."
+              : "Log in to get recommendations based on your ratings."}
           </p>
         )}
         {status === "ready" && books.length > 0 && (
