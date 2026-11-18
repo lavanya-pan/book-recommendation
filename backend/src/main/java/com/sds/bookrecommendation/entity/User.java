@@ -1,16 +1,14 @@
+
 package com.sds.bookrecommendation.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A registered user who can rate books and receive recommendations.
- * The table is named "app_users" because "user" is a reserved word in some databases.
- */
 @Entity
 @Table(name = "app_users")
 public class User {
@@ -28,8 +26,26 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    /** All ratings given by this user (inverse side of Rating.user). */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private String role = "USER";
+
+    @Column(name = "reader_type")
+    private String readerType;
+
+    @Column(name = "theme")
+    private String theme;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Rating> ratings = new ArrayList<>();
 
     public User() {
@@ -38,17 +54,85 @@ public class User {
     public User(String name, String email) {
         this.name = name;
         this.email = email;
+        this.role = "USER";
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+        if (role == null || role.isBlank()) {
+            role = "USER";
+        }
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public Long getId() {
+        return id;
+    }
 
-    public List<Rating> getRatings() { return ratings; }
-    public void setRatings(List<Rating> ratings) { this.ratings = ratings; }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getReaderType() {
+        return readerType;
+    }
+
+    public void setReaderType(String readerType) {
+        this.readerType = readerType;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
+    }
+
+    public List<Rating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<Rating> ratings) {
+        this.ratings = ratings;
+    }
 }

@@ -20,6 +20,16 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByGenreIgnoreCase(String genre);
 
     /**
+     * Books with at least minCount ratings, best stored average first (ties: more ratings first).
+     * Used as the starting ranking before the site has its own ratings.
+     */
+    List<Book> findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(int minCount, Pageable pageable);
+
+    /** Same ranking, limited to one genre (case-insensitive). */
+    List<Book> findByGenreIgnoreCaseAndRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
+            String genre, int minCount, Pageable pageable);
+
+    /**
      * One page of books filtered by free text (title, author or genre), exact genre
      * (ignoring case) and a minimum average rating. An empty q or genre means "no filter".
      * The service passes "" instead of null, and sorting comes from the Pageable.
