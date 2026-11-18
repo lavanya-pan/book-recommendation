@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class ReadingHistoryRequest {
 
-    @NotNull
+    // Set by the controller from the logged-in user; any value sent by the client is ignored.
     private Long userId;
 
     @NotNull
