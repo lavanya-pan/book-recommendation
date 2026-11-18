@@ -102,7 +102,8 @@ public class TopRatedStrategy implements RecommendationStrategy {
 
         // Fill the remaining places from the stored (dataset) ratings.
         if (result.size() < limit) {
-            int fetch = limit + alreadyRated.size() + included.size();
+            // Fetch extra, because box sets are skipped below.
+            int fetch = (limit + alreadyRated.size() + included.size()) * 3;
             List<Book> stored = bookRepository
                     .findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
                             MIN_DATASET_RATINGS, PageRequest.of(0, fetch));
@@ -110,7 +111,8 @@ public class TopRatedStrategy implements RecommendationStrategy {
                 if (result.size() == limit) {
                     break;
                 }
-                if (alreadyRated.contains(book.getId()) || included.contains(book.getId())) {
+                if (alreadyRated.contains(book.getId()) || included.contains(book.getId())
+                        || BundleFilter.isBundle(book.getTitle())) {
                     continue;
                 }
                 double average = Math.round(book.getAvgRating() * 10) / 10.0;

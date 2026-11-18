@@ -12,7 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Recommends the best-rated books across a list of genres, for example the genres
@@ -28,10 +27,6 @@ public class GenreRecommendationService {
 
     /** A book needs at least this many stored (dataset) ratings to be recommended. */
     static final int MIN_STORED_RATINGS = TopRatedStrategy.MIN_DATASET_RATINGS;
-
-    /** Titles that are bundles rather than single books. */
-    private static final Pattern BUNDLE =
-            Pattern.compile("box(ed)? ?set|collection|omnibus|treasury|study bible", Pattern.CASE_INSENSITIVE);
 
     private final BookRepository bookRepository;
 
@@ -61,7 +56,7 @@ public class GenreRecommendationService {
                     .findByGenreIgnoreCaseAndRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
                             genre, MIN_STORED_RATINGS, PageRequest.of(0, count * 3))
                     .stream()
-                    .filter(book -> !BUNDLE.matcher(book.getTitle()).find())
+                    .filter(book -> !BundleFilter.isBundle(book.getTitle()))
                     .toList();
             perGenre.add(ranked);
         }

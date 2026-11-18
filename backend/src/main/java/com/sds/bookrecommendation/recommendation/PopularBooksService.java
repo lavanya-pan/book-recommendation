@@ -75,12 +75,12 @@ public class PopularBooksService {
             Set<Long> included = new HashSet<>(ids);
             List<Book> stored = bookRepository
                     .findByRatingCountGreaterThanEqualOrderByAvgRatingDescRatingCountDesc(
-                            TopRatedStrategy.MIN_DATASET_RATINGS, PageRequest.of(0, count + ids.size()));
+                            TopRatedStrategy.MIN_DATASET_RATINGS, PageRequest.of(0, (count + ids.size()) * 3));
             for (Book book : stored) {
                 if (ids.size() == count) {
                     break;
                 }
-                if (!included.add(book.getId())) {
+                if (BundleFilter.isBundle(book.getTitle()) || !included.add(book.getId())) {
                     continue;
                 }
                 ids.add(book.getId());
