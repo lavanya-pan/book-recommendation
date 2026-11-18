@@ -1,7 +1,5 @@
-
 package com.sds.bookrecommendation.service;
 
-import com.sds.bookrecommendation.entity.Book;
 import com.sds.bookrecommendation.entity.Rating;
 import com.sds.bookrecommendation.entity.User;
 import com.sds.bookrecommendation.repository.BookRepository;
@@ -25,6 +23,7 @@ public class UserProfileService {
     private final InteractionRepository interactionRepository;
     private final BookRepository bookRepository;
 
+    // Initializes UserProfileService with required user, rating, interaction, and book repositories.
     public UserProfileService(
             UserRepository userRepository,
             RatingRepository ratingRepository,
@@ -37,6 +36,7 @@ public class UserProfileService {
         this.bookRepository = bookRepository;
     }
 
+    // Retrieves a user profile by ID or throws 404 if not found.
     @Transactional(readOnly = true)
     public User getProfile(Long userId) {
         return userRepository.findById(userId)
@@ -46,6 +46,7 @@ public class UserProfileService {
                 ));
     }
 
+    // Updates and saves the user's preferred UI theme in uppercase.
     @Transactional
     public User updateTheme(Long userId, String theme) {
         User user = getProfile(userId);
@@ -53,6 +54,7 @@ public class UserProfileService {
         return userRepository.save(user);
     }
 
+    // Updates and saves the user's reader type preference.
     @Transactional
     public User updateReaderType(Long userId, String readerType) {
         User user = getProfile(userId);
@@ -60,6 +62,32 @@ public class UserProfileService {
         return userRepository.save(user);
     }
 
+    // Updates user name and email while throwing 409 Conflict if the email is already taken.
+    @Transactional
+    public User updateProfile(Long userId, String name, String email) {
+
+        User user = getProfile(userId);
+
+        String updatedName = name.trim();
+        String updatedEmail = email.trim();
+
+        // Check whether another account already uses this email.
+        userRepository.findByEmail(updatedEmail)
+                .filter(existing -> !existing.getId().equals(userId))
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(
+                            HttpStatus.CONFLICT,
+                            "Email is already registered"
+                    );
+                });
+
+        user.setName(updatedName);
+        user.setEmail(updatedEmail);
+
+        return userRepository.save(user);
+    }
+
+    // Deletes a user account, clears interactions, and recalculates affected book rating statistics.
     @Transactional
     public void deleteAccount(Long userId) {
 
