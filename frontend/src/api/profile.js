@@ -21,6 +21,6 @@ export async function updateMyTheme(theme) {
 }
 
 export async function getMyRatings(userId) {
-    const response = await api.get(`/ratings/user/${userId}`);
+    const response = await api.get(`/users/${userId}/ratings`);
     return response.data;
 }

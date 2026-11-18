@@ -1,12 +1,11 @@
-
 package com.sds.bookrecommendation.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+// userId is set by the controller from the logged-in user; any value sent by the client is ignored.
 public record ReviewRequest(
-        @NotNull(message = "User ID is required")
         Long userId,
 
         @NotNull(message = "Book ID is required")
