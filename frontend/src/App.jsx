@@ -4,6 +4,8 @@ import ForYou from "./pages/ForYou.jsx";
 import ThemeSwitcher from "./components/ThemeSwitcher.jsx";
 import PersonalityQuiz from "./pages/PersonalityQuiz.jsx";
 import MoodQuiz from "./pages/MoodQuiz.jsx";
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
 
 // Add your page routes here, one small commit at a time to avoid merge conflicts.
 // Examples: /browse, /books/:id, /login, /quiz, /for-you, /profile
@@ -19,6 +21,8 @@ export default function App() {
                 <Route path="/for-you" element={<ForYou />} />
                 <Route path="/quiz" element={<PersonalityQuiz />} />
                 <Route path="/mood-quiz" element={<MoodQuiz />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
             </Routes>
         </>
     );
