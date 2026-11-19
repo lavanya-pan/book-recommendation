@@ -117,3 +117,38 @@ Results on simulated data (90 readers, 60 books, 3 genres). Real data will score
 | Hybrid | 0.175 | 0.450 | 0.663 | 0.169 | 0.896 | 0.975 |
 
 P = precision, R = recall, Hit = share of readers who got at least one liked book, all at 5 or 10 recommendations.
+
+## Users and Security (Person 2)
+
+Handles accounts, login, JWT security, and the user's private data (wishlist, reading history, reviews).
+
+### Features
+- Register with name, email and password. The email must be unique and the password is stored hashed with BCrypt.
+- Log in with email and password and receive a JWT (24 hour expiry).
+- `JwtAuthFilter` reads `Authorization: Bearer <token>` and identifies the user. Requests to protected endpoints without a valid token return 401.
+- `CurrentUser.getId()` tells other modules who is logged in. Users can only access their own data (403 otherwise).
+- Wishlist, reading history (READING, FINISHED, DROPPED) and reviews.
+- Frontend: Login, Register, Profile (Wishlist, Reading History, My Ratings, Theme), `ProtectedRoute`, and a 401 redirect to Login.
+
+### Main endpoints
+| Method | Endpoint | Auth |
+|---|---|---|
+| POST | `/api/auth/register` | No |
+| POST | `/api/auth/login` | No |
+| GET, DELETE | `/api/users/{id}` | Owner or admin |
+| GET | `/api/wishlist` | Yes |
+| POST, DELETE | `/api/wishlist/{bookId}` | Yes |
+| GET, POST | `/api/reading-history` | Yes |
+| POST | `/api/reviews` | Yes |
+| GET | `/api/books/{id}/reviews` | No |
+
+### Local setup
+1. Create the MySQL database `book_recommendation`.
+2. Copy the example properties file to `application-local.properties` (it is git-ignored) and set your database username and password and a JWT secret. Never commit this file.
+3. Start the backend (port 8080) and the frontend (`npm install`, then `npm run dev`, on http://localhost:5173).
+
+### Postman
+Import `postman/BookRecommendation_Person2.postman_collection.json`. Run Register, then Login. Login saves the token into the `token` collection variable, and all other requests use it automatically.
+
+### Tests
+Run `mvn test` from the `backend` folder.
