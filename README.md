@@ -71,6 +71,84 @@ Every error returns JSON: `{ "timestamp", "status", "error", "message" }`.
 Use 400 for validation, 401/403 for authentication, 404 for not found and 409 for duplicates.
 Add new handlers in `GlobalExceptionHandler`.
 
+## Ratings and quizzes module
+
+Owner: Person 3. Backend code is in the `entity`, `repository`, `service`, `controller`, `dto` and `quiz` packages. Frontend code is in `RatingStars`, `QuizUI`, `ThemeSwitcher`, `PersonalityQuiz`, `MoodQuiz` and the `theme` folder.
+
+### Ratings
+
+A reader rates a book from 1 to 5. A reader can rate each book only once. After every create, update or delete, the book's `avgRating` (rounded to 2 decimals) and `ratingCount` are recomputed.
+
+| Endpoint | What it does | Success |
+| --- | --- | --- |
+| `POST /api/ratings` | Rate a book. Body: `userId`, `bookId`, `score`. | 201 |
+| `PUT /api/ratings/{id}` | Change the score. Body: `score`. | 200 |
+| `DELETE /api/ratings/{id}` | Remove a rating. | 204 |
+| `GET /api/users/{id}/ratings` | One page of a reader's ratings, newest first. Query parameters: `page`, `size`, `sort`. | 200 |
+
+Errors: 400 for a score outside 1 to 5 or a missing field, 404 for an unknown user, book or rating, 409 if the reader already rated the book.
+
+### Interactions
+
+`POST /api/interactions` logs one action of a reader on a book. Body: `userId`, `bookId`, `type` (`VIEW`, `CLICK` or `SAVE`). Returns 201. The `interactions` table has a `created_at` column, and `InteractionRepository.countByBookSince` counts interactions per book since a given time, so the trending list can use it.
+
+### Personality quiz
+
+Eight questions, each with four answers. Every answer gives points to one or two reader types. The type with the most points wins. A tie goes to the type that the answer to question 1 favours, so the result is always the same for the same answers.
+
+| Endpoint | What it does |
+| --- | --- |
+| `GET /api/quiz/personality/questions` | The questions and their answer options. |
+| `POST /api/quiz/personality` | Body: `{ "answers": [{ "questionId", "optionId" }, ...] }` with one answer per question. Returns `readerType`, `description`, `genres` (top 3) and `theme`. |
+
+Questions and points live in `backend/src/main/resources/quiz/personality-questions.json`. Edit that file to change the quiz. No code change is needed.
+
+The six reader types, their best genres and their site theme (`ArchetypeGenreMap`, `Archetype`):
+
+| Reader type | Best genres (weight) | Theme |
+| --- | --- | --- |
+| Adventurer | fantasy 0.9, adventure 0.8, sci-fi 0.5, thriller 0.4 | fantasy |
+| Dreamer | fantasy 0.8, romance 0.7, poetry 0.6, young-adult 0.5 | romance |
+| Detective | mystery 0.9, crime 0.8, thriller 0.8, horror 0.3 | mystery |
+| Thinker | philosophy 0.9, sci-fi 0.7, non-fiction 0.6, classics 0.5 | mystery |
+| Scholar | non-fiction 0.9, history 0.8, biography 0.7, science 0.6, classics 0.5 | fantasy |
+| Comfort Reader | romance 0.8, contemporary 0.7, humor 0.6, young-adult 0.5 | romance |
+
+Other modules can read the weights with `ArchetypeGenreMap.weightsFor("Adventurer")`. All genre names come from the official list in the Genre names section below.
+
+### Mood quiz
+
+`POST /api/quiz/mood` (optional query parameter `limit`, default 10, maximum 50) takes five answers and returns matching books with a short reason, in the same shape as the recommendations.
+
+| Field | Allowed values |
+| --- | --- |
+| `mood` | `cozy`, `thrilling`, `emotional`, `funny`, `dark` |
+| `world` | `fantasy`, `real-world`, `scifi`, `historical` |
+| `length` | `short` (under 250 pages), `medium`, `long` (over 500 pages) |
+| `romance` | `true` or `false` |
+| `tone` | `light`, `serious`, `hopeful`, `mysterious` |
+
+How it works: the answers become genre weights, keywords and a page range. Books from those genres are kept if their page count fits (books without a page count stay). With `romance` set to `false`, romance books are dropped. The score is 60% genre match, 20% keyword match in the title, tags and description, and 20% average rating. An unknown answer returns 400 with the list of valid values.
+
+### Themes and frontend
+
+- `/quiz` is the personality quiz: one question at a time, a progress bar, a Back button and a result screen. The result applies its theme automatically.
+- `/mood-quiz` is the mood quiz with a grid of matching books.
+- `RatingStars` lets a reader click stars to rate a book (click the same star again to remove the rating). With `readOnly` and `value` it only shows an average. Example: `<RatingStars bookId={id} userId={userId} />` or `<RatingStars value={book.avgRating} readOnly />`.
+- `ThemeProvider` sets `data-theme` (`fantasy`, `mystery` or `romance`) on the page and remembers the choice. `ThemeSwitcher` is the drop-down that lets a reader override it. Colours are CSS variables in `frontend/src/themes/themes.css`. Use `var(--color-bg)`, `var(--color-text)`, `var(--color-accent)` and the other variables instead of fixed colours so every page follows the theme.
+- `QuizUI` holds the shared `Card`, `Button` and `ProgressBar` components.
+
+### Tests and Postman
+
+Run `mvn test` in `backend`. The module has `RatingServiceTest`, `RatingRequestValidationTest`, `RatingControllerTest` (MockMvc), `QuizServiceTest`, `PersonalityQuizDataTest`, `MoodQuizServiceTest` and `ArchetypeGenreMapTest`.
+
+Import `postman/Ratings-and-Quizzes.postman_collection.json` into Postman and use Run collection. It has 14 requests with status checks, uses the variables `baseUrl` (default `http://localhost:8081`) and `token`, and needs the test user with id 1 and book 1 in the database.
+
+### Known limits
+
+- Ratings and interactions need a login. Send the token in the `Authorization: Bearer <token>` header. The server uses the logged-in user and ignores the `userId` in the body, although the field is still required.
+- The quiz result is not saved on the user yet. It will be stored in `User.readerType` and `User.theme` once those fields are on `main`.
+
 ## Recommendations module
 
 Owner: Person 4. Code is in the `recommendation` package (backend) and `ForYou`, `SimilarBooks` and `PopularRows` (frontend).
