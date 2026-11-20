@@ -142,7 +142,7 @@ How it works: the answers become genre weights, keywords and a page range. Books
 
 Run `mvn test` in `backend`. The module has `RatingServiceTest`, `RatingRequestValidationTest`, `RatingControllerTest` (MockMvc), `QuizServiceTest`, `PersonalityQuizDataTest`, `MoodQuizServiceTest` and `ArchetypeGenreMapTest`.
 
-Import `postman/Ratings-and-Quizzes.postman_collection.json` into Postman and use Run collection. It has 14 requests with status checks, uses the variables `baseUrl` (default `http://localhost:8081`) and `token`, and needs the test user with id 1 and book 1 in the database.
+Import `postman/Ratings-and-Quizzes.postman_collection.json` into Postman and use Run collection. It has 14 requests with status checks, uses the variables `baseUrl` (default `http://localhost:8080`) and `token`, and needs the test user with id 1 and book 1 in the database.
 
 ### Known limits
 
