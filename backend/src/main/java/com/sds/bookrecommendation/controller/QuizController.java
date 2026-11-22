@@ -6,6 +6,7 @@ import com.sds.bookrecommendation.dto.PersonalityResultResponse;
 import com.sds.bookrecommendation.quiz.PersonalityQuestion;
 import com.sds.bookrecommendation.recommendation.RecommendedBook;
 import com.sds.bookrecommendation.service.MoodQuizService;
+import com.sds.bookrecommendation.service.QuizResultService;
 import com.sds.bookrecommendation.service.QuizService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * REST endpoints for the quizzes. All paths start with /api/quiz.
+ * REST endpoints for the quizzes. All paths start with /api/quiz and are public.
  */
 @RestController
 @RequestMapping("/api/quiz")
@@ -26,10 +27,14 @@ public class QuizController {
 
     private final QuizService quizService;
     private final MoodQuizService moodQuizService;
+    private final QuizResultService quizResultService;
 
-    public QuizController(QuizService quizService, MoodQuizService moodQuizService) {
+    public QuizController(QuizService quizService,
+                          MoodQuizService moodQuizService,
+                          QuizResultService quizResultService) {
         this.quizService = quizService;
         this.moodQuizService = moodQuizService;
+        this.quizResultService = quizResultService;
     }
 
     /** GET /api/quiz/personality/questions: all personality questions with their options. */
@@ -38,11 +43,13 @@ public class QuizController {
         return quizService.getPersonalityQuestions();
     }
 
-    /** POST /api/quiz/personality: scores the answers and returns the reader type. */
+    /** POST /api/quiz/personality: scores the answers, returns the reader type and saves it for a logged-in user. */
     @PostMapping("/personality")
     public PersonalityResultResponse submitPersonality(
             @Valid @RequestBody PersonalityQuizRequest request) {
-        return quizService.submitPersonality(request);
+        PersonalityResultResponse result = quizService.submitPersonality(request);
+        quizResultService.savePersonalityResult(request, result);
+        return result;
     }
 
     /** POST /api/quiz/mood: returns books that match the mood answers (limit defaults to 10). */
