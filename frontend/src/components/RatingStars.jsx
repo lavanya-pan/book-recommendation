@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { createRating, deleteRating, getUserRatings, updateRating } from "../api/ratings.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const STAR_NUMBERS = [1, 2, 3, 4, 5];
 
@@ -18,10 +20,16 @@ function Star({ fill }) {
     );
 }
 
-// Five stars. With bookId and userId the user can click to rate (click the same star
-// again to remove the rating). With readOnly and value it just shows an average.
+// Five stars. With a bookId, a logged-in user can click to rate (click the same star
+// again to remove the rating). Visitors see the average and a "Log in to rate" link.
+// With readOnly and value it only shows an average.
+// Usage: <RatingStars bookId={id} value={book.avgRating} /> or <RatingStars value={4.2} readOnly />
 export default function RatingStars({ bookId, userId, value = 0, readOnly = false, onRated }) {
-    const interactive = !readOnly && bookId != null && userId != null;
+    const { user } = useAuth();
+    const currentUserId = userId ?? user?.id ?? null;
+    const interactive = !readOnly && bookId != null && currentUserId != null;
+    const needsLogin = !readOnly && bookId != null && currentUserId == null;
+
     const [rating, setRating] = useState(null); // { id, score } or null
     const [hover, setHover] = useState(0);
     const [busy, setBusy] = useState(false);
@@ -31,7 +39,7 @@ export default function RatingStars({ bookId, userId, value = 0, readOnly = fals
     useEffect(() => {
         if (!interactive) return undefined;
         let cancelled = false;
-        getUserRatings(userId)
+        getUserRatings(currentUserId)
             .then((list) => {
                 if (cancelled) return;
                 const mine = list.find((r) => r.bookId === bookId);
@@ -43,7 +51,7 @@ export default function RatingStars({ bookId, userId, value = 0, readOnly = fals
         return () => {
             cancelled = true;
         };
-    }, [interactive, userId, bookId]);
+    }, [interactive, currentUserId, bookId]);
 
     // Handles a click on star number "score": create, change or remove the rating.
     async function handleClick(score) {
@@ -60,7 +68,7 @@ export default function RatingStars({ bookId, userId, value = 0, readOnly = fals
                 setRating({ id: saved.id, score: saved.score });
                 if (onRated) onRated(saved.score);
             } else {
-                const saved = await createRating(userId, bookId, score);
+                const saved = await createRating(currentUserId, bookId, score);
                 setRating({ id: saved.id, score: saved.score });
                 if (onRated) onRated(saved.score);
             }
@@ -75,14 +83,21 @@ export default function RatingStars({ bookId, userId, value = 0, readOnly = fals
 
     if (!interactive) {
         return (
-            <span
-                className="inline-flex gap-0.5 text-xl"
-                role="img"
-                aria-label={`Rated ${Number(value).toFixed(1)} out of 5`}
-            >
-        {STAR_NUMBERS.map((n) => (
-            <Star key={n} fill={Math.min(1, Math.max(0, shown - (n - 1)))} />
-        ))}
+            <span className="inline-flex flex-col">
+        <span
+            className="inline-flex gap-0.5 text-xl"
+            role="img"
+            aria-label={`Rated ${Number(value).toFixed(1)} out of 5`}
+        >
+          {STAR_NUMBERS.map((n) => (
+              <Star key={n} fill={Math.min(1, Math.max(0, shown - (n - 1)))} />
+          ))}
+        </span>
+                {needsLogin && (
+                    <Link to="/login" className="text-sm underline" style={{ color: "var(--color-accent)" }}>
+                        Log in to rate this book
+                    </Link>
+                )}
       </span>
         );
     }
