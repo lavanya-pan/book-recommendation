@@ -189,7 +189,7 @@ Genre matching ignores case but is otherwise exact, so `sci-fi` and `science fic
 
 `RecommendationEvaluationTest` hides 20% of each reader's ratings, recommends from the other 80%, and checks how many of the hidden liked books were recommended. Run it alone and read the table it prints.
 
-Results on simulated data (90 readers, 60 books, 3 genres). Real data will score lower, so compare the methods rather than the absolute numbers.
+Results on simulated data (90 readers, 60 books, 3 genres). Compare the methods rather than the absolute numbers.
 
 | Method | P@5 | R@5 | Hit@5 | P@10 | R@10 | Hit@10 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -199,6 +199,19 @@ Results on simulated data (90 readers, 60 books, 3 genres). Real data will score
 | Hybrid | 0.175 | 0.450 | 0.663 | 0.169 | 0.896 | 0.975 |
 
 P = precision, R = recall, Hit = share of readers who got at least one liked book, all at 5 or 10 recommendations.
+
+`RealDataEvaluationTest` does the same on the real ratings imported with `POST /api/admin/import/ratings` (1,000 readers, 10,000 books, 113,518 ratings). It samples 200 readers with at least 10 ratings (fixed seed), hides 20% of each one's ratings, and keeps everyone else's ratings for training. The popularity baseline uses books with at least 30 training ratings. It only runs when the file `~/.run-real-eval` exists, so normal test runs skip it. To run it: `touch ~/.run-real-eval`, start MySQL, run the test alone and read the table in the console.
+
+Results on real data (200 readers evaluated):
+
+| Method | P@5 | R@5 | Hit@5 | P@10 | R@10 | Hit@10 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Popularity (baseline) | 0.016 | 0.006 | 0.075 | 0.012 | 0.008 | 0.115 |
+| Content | 0.095 | 0.036 | 0.295 | 0.082 | 0.060 | 0.425 |
+| Collaborative | 0.228 | 0.078 | 0.570 | 0.177 | 0.121 | 0.745 |
+| Hybrid | 0.253 | 0.087 | 0.630 | 0.185 | 0.127 | 0.755 |
+
+The order is the same as on simulated data: Hybrid is best, then Collaborative, then Content, and all of them beat the popularity baseline. For 63% of readers at least one of the top 5 hybrid recommendations is a hidden book they liked. Recall is low in absolute terms because each reader hides only a few books out of 10,000.
 
 ## Users and Security (Person 2)
 
