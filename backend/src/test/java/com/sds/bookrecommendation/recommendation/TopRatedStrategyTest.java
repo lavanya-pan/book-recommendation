@@ -50,9 +50,9 @@ class TopRatedStrategyTest {
     /** Fake database rows: [bookId, average, count], best average first. */
     private void givenAverages() {
         when(ratingRepository.findBookAverages()).thenReturn(List.of(
-                new Object[]{2L, 5.0, 1L},   // perfect score but only 1 rating
-                new Object[]{1L, 4.8, 10L},
-                new Object[]{3L, 4.5, 5L}));
+                new Object[]{2L, 5.0, (long) TopRatedStrategy.MIN_RATINGS - 1},   // perfect score but too few ratings
+                new Object[]{1L, 4.8, (long) TopRatedStrategy.MIN_RATINGS + 10},
+                new Object[]{3L, 4.5, (long) TopRatedStrategy.MIN_RATINGS}));
         when(bookRepository.findAllById(any())).thenReturn(
                 List.of(book(1, "Book One"), book(2, "Book Two"), book(3, "Book Three")));
     }

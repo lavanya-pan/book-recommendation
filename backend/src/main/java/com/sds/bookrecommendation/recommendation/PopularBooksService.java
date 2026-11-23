@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class PopularBooksService {
 
-    static final int MIN_RATINGS = 3;
+    static final int MIN_RATINGS = 30;
     static final int TRENDING_DAYS = 30;
     static final int DEFAULT_LIMIT = 10;
     static final int MAX_LIMIT = 50;
@@ -40,7 +40,7 @@ public class PopularBooksService {
     }
 
     /**
-     * Highest average rating first, among books with at least 3 ratings on the site.
+     * Highest average rating first, among books with at least MIN_RATINGS (30) ratings on the site.
      * If the site has too few ratings to fill the list, the remaining places are filled
      * from the rating stored on each book (the dataset's average and rating count).
      *

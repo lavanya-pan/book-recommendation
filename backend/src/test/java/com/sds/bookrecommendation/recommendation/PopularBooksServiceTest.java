@@ -64,9 +64,9 @@ class PopularBooksServiceTest {
 
     private void averages() {
         List<Object[]> rows = List.of(
-                new Object[]{1L, 4.5, 4L},
-                new Object[]{2L, 4.0, 2L},
-                new Object[]{3L, 3.0, 5L});
+                new Object[]{1L, 4.5, (long) PopularBooksService.MIN_RATINGS + 4},
+                new Object[]{2L, 4.0, (long) PopularBooksService.MIN_RATINGS - 1},
+                new Object[]{3L, 3.0, (long) PopularBooksService.MIN_RATINGS});
         when(ratingRepository.findBookAverages()).thenReturn(rows);
     }
 
@@ -78,7 +78,8 @@ class PopularBooksServiceTest {
 
         assertEquals(List.of(1L, 3L), result.stream().map(RecommendedBook::id).toList());
         assertEquals(4.5, result.get(0).score(), 0.001);
-        assertEquals("Rated 4.5 out of 5 by 4 readers", result.get(0).reason());
+        assertEquals("Rated 4.5 out of 5 by " + (PopularBooksService.MIN_RATINGS + 4) + " readers",
+                result.get(0).reason());
     }
 
     @Test

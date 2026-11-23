@@ -157,7 +157,7 @@ Owner: Person 4. Code is in the `recommendation` package (backend) and `ForYou`,
 
 | Method | How it works |
 | --- | --- |
-| Top rated | Best average rating, only books with at least 3 ratings. Also used as the fallback for new users. |
+| Top rated | Best average rating, only books with at least 30 ratings. Also used as the fallback for new users. |
 | Genre | Books from the reader's liked genres that are well rated. |
 | Content-based | TF-IDF text vectors (built from scratch) over title, author, genre, tags and description. Recommends books most similar (cosine similarity) to books the reader rated 4 or higher. |
 | Collaborative | Item-based. Finds books that readers who liked the same books also liked. Uses only ratings of 4 or higher. |

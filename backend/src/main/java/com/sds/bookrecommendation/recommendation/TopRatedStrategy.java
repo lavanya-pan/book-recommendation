@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class TopRatedStrategy implements RecommendationStrategy {
 
     /** A book needs at least this many ratings on the site to qualify. Raise it when more data exists. */
-    static final int MIN_RATINGS = 3;
+    static final int MIN_RATINGS = 30;
 
     /** A book needs at least this many stored (dataset) ratings to be used as a filler. */
     static final int MIN_DATASET_RATINGS = 1000;
