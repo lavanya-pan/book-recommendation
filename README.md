@@ -92,6 +92,10 @@ Errors: 400 for a score outside 1 to 5 or a missing field, 404 for an unknown us
 
 `POST /api/interactions` logs one action of a reader on a book. Body: `userId`, `bookId`, `type` (`VIEW`, `CLICK` or `SAVE`). Returns 201. The `interactions` table has a `created_at` column, and `InteractionRepository.countByBookSince` counts interactions per book since a given time, so the trending list can use it.
 
+### Seed ratings
+
+`POST /api/admin/import/ratings?maxUsers=N` (admin only) loads the Goodbooks sample in `backend/src/main/resources/data/ratings-sample.csv` as ratings of dummy readers (`reader1@dataset.local`, and so on, with a password nobody knows). `maxUsers=3` gives about 300 ratings and the default of 1000 gives about 113,000. Dataset book ids equal database ids. Book averages are not changed, and a second call skips readers that already exist. To run it: make yourself ADMIN once with `UPDATE app_users SET role = 'ADMIN' WHERE email = '...'`, log in again for a fresh token, and send the request with an `Authorization: Bearer <token>` header. Each person's database is local, so everyone runs it once.
+
 ### Personality quiz
 
 Eight questions, each with four answers. Every answer gives points to one or two reader types. The type with the most points wins. A tie goes to the type that the answer to question 1 favours, so the result is always the same for the same answers.
@@ -101,6 +105,7 @@ Eight questions, each with four answers. Every answer gives points to one or two
 | `GET /api/quiz/personality/questions` | The questions and their answer options. |
 | `POST /api/quiz/personality` | Body: `{ "answers": [{ "questionId", "optionId" }, ...] }` with one answer per question. Returns `readerType`, `description`, `genres` (top 3) and `theme`. |
 
+When the reader is logged in, the reader type is also saved on the user (`User.readerType`) and the answers are kept in the `quiz_responses` table. Visitors can take the quiz, but nothing is saved for them.
 Questions and points live in `backend/src/main/resources/quiz/personality-questions.json`. Edit that file to change the quiz. No code change is needed.
 
 The six reader types, their best genres and their site theme (`ArchetypeGenreMap`, `Archetype`):
@@ -134,20 +139,19 @@ How it works: the answers become genre weights, keywords and a page range. Books
 
 - `/quiz` is the personality quiz: one question at a time, a progress bar, a Back button and a result screen. The result applies its theme automatically.
 - `/mood-quiz` is the mood quiz with a grid of matching books.
-- `RatingStars` lets a reader click stars to rate a book (click the same star again to remove the rating). With `readOnly` and `value` it only shows an average. Example: `<RatingStars bookId={id} userId={userId} />` or `<RatingStars value={book.avgRating} readOnly />`.
+- `RatingStars` lets a reader click stars to rate a book (click the same star again to remove the rating). With `readOnly` and `value` it only shows an average. Example: `<RatingStars bookId={book.id} value={book.avgRating} />`. It reads the logged-in user itself and shows a "Log in to rate this book" link to visitors. Or `<RatingStars value={book.avgRating} readOnly />` for a display-only average.`.
 - `ThemeProvider` sets `data-theme` (`fantasy`, `mystery` or `romance`) on the page and remembers the choice. `ThemeSwitcher` is the drop-down that lets a reader override it. Colours are CSS variables in `frontend/src/themes/themes.css`. Use `var(--color-bg)`, `var(--color-text)`, `var(--color-accent)` and the other variables instead of fixed colours so every page follows the theme.
 - `QuizUI` holds the shared `Card`, `Button` and `ProgressBar` components.
 
 ### Tests and Postman
 
-Run `mvn test` in `backend`. The module has `RatingServiceTest`, `RatingRequestValidationTest`, `RatingControllerTest` (MockMvc), `QuizServiceTest`, `PersonalityQuizDataTest`, `MoodQuizServiceTest` and `ArchetypeGenreMapTest`.
+Run `mvn test` in `backend`. The module has `RatingServiceTest`, `RatingRequestValidationTest`, `RatingControllerTest` (MockMvc), `QuizServiceTest`, `PersonalityQuizDataTest`, `MoodQuizServiceTest`,`QuizResultServiceTest`,` RatingImportServiceTest` and `ArchetypeGenreMapTest`.
 
-Import `postman/Ratings-and-Quizzes.postman_collection.json` into Postman and use Run collection. It has 14 requests with status checks, uses the variables `baseUrl` (default `http://localhost:8080`) and `token`, and needs the test user with id 1 and book 1 in the database.
+Import `postman/Ratings-and-Quizzes.postman_collection.json` into Postman and use Run collection. It has 16 requests with status checks. The first folder registers a new test user and logs in, which saves the token for the other requests. It uses the variables `baseUrl` (default `http://localhost:8080`) and `token`, and needs book 1 in the database.
 
 ### Known limits
 
 - Ratings and interactions need a login. Send the token in the `Authorization: Bearer <token>` header. The server uses the logged-in user and ignores the `userId` in the body, although the field is still required.
-- The quiz result is not saved on the user yet. It will be stored in `User.readerType` and `User.theme` once those fields are on `main`.
 
 ## Recommendations module
 

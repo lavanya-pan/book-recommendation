@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ratings and Quizzes",
-    "description": "Person 3 requests: ratings, interactions, personality quiz and mood quiz. Run the folders top to bottom. Needs test user id 1 and book id 1 in the database. Set the token variable after login once JWT is merged.",
+    "description": "Person 3 requests: ratings, interactions, personality quiz and mood quiz. Folder 0 registers a fresh test user and logs in, which saves the JWT in the token variable. Run the folders top to bottom. Needs book id 1 in the database. If your backend runs on another port, change the baseUrl variable.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -24,11 +24,123 @@
       "value": ""
     },
     {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
       "key": "ratingId",
       "value": ""
     }
   ],
   "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "0a. Register a new test user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.collectionVariables.set(\"email\", pm.response.json().email);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a new user with a unique email each run.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman User\",\n  \"email\": \"postman{{$timestamp}}@example.com\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "0b. Log in",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 200\", function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Token returned\", function () { pm.expect(body.token).to.be.a(\"string\"); });",
+                  "pm.collectionVariables.set(\"token\", body.token);",
+                  "pm.collectionVariables.set(\"userId\", body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Saves the JWT in the token variable and the user id in userId. All later requests send the token.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     {
       "name": "Ratings",
       "item": [
@@ -65,10 +177,10 @@
                 "ratings"
               ]
             },
-            "description": "Creates a rating. Saves the new rating id in the ratingId variable.",
+            "description": "Creates a rating for the logged-in user. Saves the new rating id in ratingId.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"score\": 4\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 1,\n  \"score\": 4\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -111,7 +223,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"score\": 5\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 1,\n  \"score\": 5\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -153,7 +265,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 2,\n  \"score\": 6\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 2,\n  \"score\": 6\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -224,14 +336,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/users/1/ratings",
+              "raw": "{{baseUrl}}/api/users/{{userId}}/ratings",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "users",
-                "1",
+                "{{userId}}",
                 "ratings"
               ]
             }
@@ -304,7 +416,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"type\": \"VIEW\"\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 1,\n  \"type\": \"VIEW\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -346,7 +458,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"type\": \"LIKE\"\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 1,\n  \"type\": \"LIKE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -388,7 +500,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 99999,\n  \"type\": \"CLICK\"\n}",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"bookId\": 99999,\n  \"type\": \"CLICK\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
