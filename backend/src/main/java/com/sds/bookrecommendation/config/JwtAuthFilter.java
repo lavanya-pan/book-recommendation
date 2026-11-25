@@ -32,6 +32,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
 
+    // Reads the Bearer token from each request and logs in the matching user if the token is valid.
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

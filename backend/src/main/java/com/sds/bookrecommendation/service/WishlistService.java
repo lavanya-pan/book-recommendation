@@ -34,6 +34,7 @@ public class WishlistService {
         this.bookRepository = bookRepository;
     }
 
+    // Adds a book to the user's wishlist and rejects a duplicate.
     @Transactional
     public WishlistResponse addToWishlist(WishlistRequest request) {
 
@@ -57,6 +58,7 @@ public class WishlistService {
         return WishlistResponse.from(wishlistRepository.save(item));
     }
 
+    // Returns the wishlist of the given user.
     @Transactional(readOnly = true)
     public List<WishlistResponse> getWishlist(Long userId) {
 
@@ -72,6 +74,7 @@ public class WishlistService {
                 .toList();
     }
 
+    // Removes a book from the user's wishlist.
     @Transactional
     public void removeFromWishlist(Long userId, Long bookId) {
 
