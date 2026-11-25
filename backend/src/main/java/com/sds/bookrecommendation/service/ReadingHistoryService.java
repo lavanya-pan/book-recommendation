@@ -29,6 +29,7 @@ public class ReadingHistoryService {
         this.bookRepository = bookRepository;
     }
 
+    // Saves a reading status for a user and book, or updates it if it already exists.
     @Transactional
     public ReadingHistoryResponse addOrUpdate(
             ReadingHistoryRequest request) {
@@ -53,6 +54,7 @@ public class ReadingHistoryService {
                 readingHistoryRepository.save(history));
     }
 
+    // Returns the reading history of the given user.
     @Transactional(readOnly = true)
     public List<ReadingHistoryResponse> getHistory(Long userId) {
 
@@ -68,6 +70,7 @@ public class ReadingHistoryService {
                 .toList();
     }
 
+    // Changes the reading status of a book in the user's history.
     @Transactional
     public ReadingHistoryResponse updateStatus(
             Long userId, Long bookId, ReadingStatus status) {
