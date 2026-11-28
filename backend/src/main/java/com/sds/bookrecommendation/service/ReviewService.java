@@ -35,6 +35,7 @@ public class ReviewService {
         this.bookRepository = bookRepository;
     }
 
+    // Saves a new review written by the given user for a book.
     @Transactional
     public ReviewResponse createReview(ReviewRequest request) {
 
@@ -58,6 +59,7 @@ public class ReviewService {
         return ReviewResponse.from(savedReview);
     }
 
+    // Returns all reviews of a book.
     @Transactional(readOnly = true)
     public List<ReviewResponse> getReviewsByBook(Long bookId) {
 

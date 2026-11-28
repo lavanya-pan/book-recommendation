@@ -24,6 +24,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Registers a new user with a hashed password and rejects a duplicate email.
     @Transactional
     public User register(String name, String email, String password) {
 
@@ -57,6 +58,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    // Checks the email and password and returns the user, or throws 401.
     @Transactional(readOnly = true)
     public User login(String email, String password) {
 
@@ -82,6 +84,7 @@ public class AuthService {
         return user;
     }
 
+    // Cleans up an email address so the same address is always stored the same way.
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }

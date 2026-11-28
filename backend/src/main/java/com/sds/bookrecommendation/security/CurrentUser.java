@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class CurrentUser {
 
+    // Returns the logged-in user, or throws 403 if nobody is logged in.
     public static User getUser() {
 
         Authentication authentication =
@@ -26,6 +27,7 @@ public class CurrentUser {
         return (User) authentication.getPrincipal();
     }
 
+    // Returns the id of the logged-in user.
     public static Long getId() {
         return getUser().getId();
     }
