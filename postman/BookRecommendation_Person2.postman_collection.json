@@ -332,7 +332,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Review saved (2xx)', function () { pm.expect([200, 201]).to.include(pm.response.code); });"
+                  "pm.test('Review saved (2xx) or already reviewed (409)', function () { pm.expect([200, 201, 409]).to.include(pm.response.code); });"
                 ]
               }
             }
