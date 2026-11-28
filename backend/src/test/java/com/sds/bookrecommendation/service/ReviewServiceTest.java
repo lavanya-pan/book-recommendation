@@ -1,4 +1,3 @@
-
 package com.sds.bookrecommendation.service;
 
 import com.sds.bookrecommendation.dto.ReviewRequest;
@@ -18,6 +17,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,6 +86,40 @@ class ReviewServiceTest {
                 "This is an excellent book!",
                 captor.getValue().getText()
         );
+    }
+
+    // A second review of the same book by the same user is rejected with 409 and nothing is saved.
+    @Test
+    void createReviewWhenAlreadyReviewed_throwsConflict() {
+
+        User user = mock(User.class);
+        Book book = mock(Book.class);
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        when(bookRepository.findById(1096L))
+                .thenReturn(Optional.of(book));
+
+        when(user.getId()).thenReturn(1L);
+        when(book.getId()).thenReturn(1096L);
+
+        when(reviewRepository.existsByUser_IdAndBook_Id(1L, 1096L))
+                .thenReturn(true);
+
+        ReviewRequest request = new ReviewRequest(
+                1L,
+                1096L,
+                "Another review of the same book"
+        );
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> reviewService.createReview(request)
+        );
+
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        verify(reviewRepository, never()).save(any());
     }
 
     @Test
