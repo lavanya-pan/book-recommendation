@@ -14,6 +14,8 @@ import com.sds.bookrecommendation.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class ReviewService {
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() ->
                         new BookNotFoundException(request.bookId()));
+
+        if (reviewRepository.existsByUser_IdAndBook_Id(user.getId(), book.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "You have already reviewed this book");
+        }
 
         Review review = new Review(user, book, request.text().trim());
 
